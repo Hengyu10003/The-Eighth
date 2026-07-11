@@ -48,6 +48,7 @@ LinkGameWidget::LinkGameWidget(QWidget *parent, int difficulty, QSize size)
     , totalPairs(0)
     , matchedPairs(0)
     , m_isBuilding(false)
+    , m_bgPixmap(LINE)
 {
     setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
@@ -58,12 +59,12 @@ LinkGameWidget::LinkGameWidget(QWidget *parent, int difficulty, QSize size)
     case 3: gridSize = 12; numRange = 10; break;
     }
 
-    cellSize = qMin(width() / gridSize, height() / gridSize);
+    cellSize = qMin(width() / gridSize, height() / gridSize) * 0.9;
     initGame();
 
     // 返回主菜单按钮
     QPushButton *backBtn = new QPushButton(this);
-    backBtn->setGeometry(1150, 0, 50, 30);
+    backBtn->setGeometry(1105, 0, 75, 45);
     backBtn->setText("返回");
     backBtn->setStyleSheet("QPushButton { background-color: rgba(200,200,200,200); border: 1px solid gray; border-radius: 5px; }"
                            "QPushButton:hover { background-color: rgba(255,255,255,230); }");
@@ -493,7 +494,11 @@ void LinkGameWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     // 背景
-    painter.fillRect(rect(), QColor(236, 240, 241));
+    if (!m_bgPixmap.isNull()) {
+        painter.drawPixmap(rect(), m_bgPixmap);
+    } else {
+        painter.fillRect(rect(), QColor(236, 240, 241));
+    }
 
     if (gridSize <= 0) return;
 
@@ -514,9 +519,9 @@ void LinkGameWidget::paintEvent(QPaintEvent *event)
             int cidx = colors[i][j];
 
             if (v == 0) {
-                // 空格
-                painter.fillRect(rct, QColor(255, 255, 255));
-                painter.setPen(QPen(QColor(189, 195, 199), 1));
+                // 空格（透明底 + 白色边框）
+                painter.setBrush(Qt::NoBrush);
+                painter.setPen(QPen(Qt::white, 1));
                 painter.drawRect(rct);
             } else if (v > 0) {
                 // 未连接的数字
@@ -525,9 +530,8 @@ void LinkGameWidget::paintEvent(QPaintEvent *event)
                     QColor::fromHsv((cidx * 360 / qMax(1, (int)m_pairs.size())) % 360, 200, 255) :
                     getColor(n);
 
-                painter.setPen(Qt::NoPen);
-                painter.fillRect(rct, getLightColor(n));
                 painter.setPen(QPen(baseColor.darker(110), 2));
+                painter.setBrush(Qt::NoBrush);
                 painter.drawRoundedRect(rct.adjusted(1, 1, -1, -1), 4, 4);
 
                 QFont f;

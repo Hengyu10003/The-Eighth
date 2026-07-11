@@ -25,6 +25,9 @@
 //背景
 #define MIGONG ":/images/migong.png"
 
+//红绸织梦————数字连线
+#define LINE ":/images/line.png"
+
 //逃离梦魇————超级马里奥
 //背景
 #define MARIO_B ":/images/mario_background.png"

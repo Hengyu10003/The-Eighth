@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QVector>
 #include <QSet>
+#include <QPixmap>
 
 #include "config.h"
 
@@ -75,6 +76,7 @@ private:
     // 成对管理
     QVector<PairInfo> m_pairs;
     QVector<int> m_connectionHistory;
+    QPixmap m_bgPixmap;
 };
 
 #endif // LINKGAMEWIDGET_H
