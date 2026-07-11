@@ -16,16 +16,12 @@ public:
     ~GameResultDialog();
 
     void setResult(bool won, int level, int difficulty);
-    void setSkipConfirm(bool skip);
 
 signals:
     void resultSelected(int result);
 
 private slots:
-    void onConfirmClicked();
     void onRetryClicked();
-    void onNextLevelClicked();
-    void onGoToNextLevelClicked();
     void onBackToMenuClicked();
 
 private:
@@ -33,7 +29,6 @@ private:
     bool isWon;
     int currentLevel;
     int currentDifficulty;
-    bool skipConfirm;
 };
 
 #endif // GAMERESULTDIALOG_H

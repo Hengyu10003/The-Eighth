@@ -57,5 +57,13 @@
         <file>images/tuan2.png</file>
         <file>images/tuan3.png</file>
         <file>images/zhuan.png</file>
+        <file>images/tuan1_1.png</file>
+        <file>images/tuan2_1.png</file>
+        <file>images/tuan3_1.png</file>
+        <file>images/mario_background.png</file>
+        <file>images/WALL.png</file>
+        <file>images/migong.png</file>
+        <file>images/door.png</file>
+        <file>images/line.png</file>
     </qresource>
 </RCC>

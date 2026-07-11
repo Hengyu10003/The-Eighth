@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QKeyEvent>
 #include <QTimer>
+#include <QPixmap>
 
 #include "config.h"
 
@@ -17,9 +18,12 @@ public:
 
     void setLevel(int level);
     void reset();
-
 signals:
     void mazeCompleted();
+    void returnToMenu();
+
+private slots:
+    void animatePlayer();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -39,6 +43,11 @@ private:
     int exitY;
     bool **maze;
     QTimer *animationTimer;
+    QPixmap m_playerPixmap[4];
+    QPixmap m_doorPixmap;
+    QPixmap m_wallPixmap;
+    QPixmap m_bgPixmap;
+    int m_playerFrame;
 };
 
 #endif // MAZEWIDGET_H

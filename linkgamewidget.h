@@ -25,6 +25,7 @@ public:
 signals:
     void gameWon();
     void gameLost();
+    void returnToMenu();
 
 protected:
     void paintEvent(QPaintEvent *event);

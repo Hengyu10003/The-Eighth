@@ -23,7 +23,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void showMainMenu();
     void showMaze(int level);
     void showLinkGame(int difficulty);
     void showMarioGame(int difficulty);
@@ -48,6 +47,9 @@ public:
 signals:
     void gameStarted();
     void gameFinished(int fragments, int time);
+
+public slots:
+    void showMainMenu();   // 返回主菜单（作为槽，支持信号连接）
 
 private slots:
     void onInputNameClicked();

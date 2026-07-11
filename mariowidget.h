@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QRect>
 #include <QList>
+#include <QPixmap>
 
 #include "config.h"
 
@@ -26,6 +27,7 @@ public:
 signals:
     void gameWon();
     void gameLost();
+    void returnToMenu();
 
 protected:
     void paintEvent(QPaintEvent *event);
@@ -84,6 +86,19 @@ private:
 
     QTimer *gameTimer;
     bool m_gameOver;   // 防止重复发射 gameWon/gameLost
+    QPixmap m_enemyPixmap;
+    QPixmap m_platformPixmap;
+    QPixmap m_playerPixmapL[4];   // 向左移动动画4帧
+    QPixmap m_playerPixmapR[4];   // 向右移动动画4帧
+    QPixmap m_coinPixmap1;
+    QPixmap m_coinPixmap2;
+    QPixmap m_bgPixmap;
+    int m_playerWidth;
+    int m_playerHeight;
+    int m_coinFrame;
+    int m_coinFrameCounter;
+    int m_playerFrame;         // 玩家动画帧 0-3
+    int m_playerFrameCounter;  // 玩家动画计数器
 };
 
 #endif // MARIOWIDGET_H

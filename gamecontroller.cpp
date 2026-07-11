@@ -224,12 +224,11 @@ void GameController::handleGameResult(bool won, int level, int difficulty)
             dialog->deleteLater();
         }
     } else {
-        // 失败：使用通用失败对话框
+        // 失败：使用通用失败对话框（直接显示按钮，无需确认步骤）
         if (!gameResultDialog) {
             gameResultDialog = new GameResultDialog(mainWindow);
             connect(gameResultDialog, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
         }
-        gameResultDialog->setSkipConfirm(false);
         gameResultDialog->setResult(won, level, difficulty);
         gameResultDialog->exec();
     }

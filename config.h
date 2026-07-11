@@ -17,10 +17,34 @@
 // 新增：外部二进制rcc资源文件路径
 #define GAME_RES_PATH "./res.rcc"
 
-// 超级马里奥游戏贴图
-#define MARIO_TUAN1 ":/images/TUAN1.png"
-#define MARIO_GUAI ":/images/GUAI.png"
-#define MARIO_ZHUAN ":/images/ZHUAN.png"
-#define MARIO_BI ":/images/BI.png"
+//迷宫
+//出口
+#define DOOR ":/images/door.png"
+//墙
+#define WALL ":/images/WALL.png"
+//背景
+#define MIGONG ":/images/migong.png"
+
+//逃离梦魇————超级马里奥
+//背景
+#define MARIO_B ":/images/mario_background.png"
+//玩家
+//left
+#define TUAN1_l ":/images/tuan1.png"
+#define TUAN2_l ":/images/tuan2.png"
+#define TUAN3_l ":/images/tuan1.png"
+#define TUAN4_l ":/images/tuan3.png"
+//right
+#define TUAN1_r ":/images/tuan1_1.png"
+#define TUAN2_r ":/images/tuan2_1.png"
+#define TUAN3_r ":/images/tuan1_1.png"
+#define TUAN4_r ":/images/tuan3_1.png"
+//怪兽
+#define GUAI ":/images/guai1.png"
+//砖
+#define ZHUAN ":/images/zhuan.png"
+//金币
+#define BI1 ":/images/bi1.png"
+#define BI2 ":/images/bi2.png"
 
 #endif // CONFIG_H

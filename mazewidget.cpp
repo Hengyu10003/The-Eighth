@@ -5,6 +5,7 @@
 #include <QPair>
 #include <QDebug>
 #include <QKeyEvent>
+#include <QPushButton>
 
 MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
     : QWidget(parent)
@@ -38,12 +39,31 @@ MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
     cellSize = qMin(width() / mazeWidth, height() / mazeHeight);
     generateMaze();
 
-    // 这个 timer 你没 connect，没用但不影响，我先保留
+    // 加载玩家动画（向右）
+    m_playerPixmap[0].load(TUAN1_r);
+    m_playerPixmap[1].load(TUAN2_r);
+    m_playerPixmap[2].load(TUAN3_r);
+    m_playerPixmap[3].load(TUAN4_r);
+    m_playerFrame = 0;
+    m_doorPixmap.load(DOOR);
+    m_wallPixmap.load(WALL);
+    m_bgPixmap.load(MIGONG);
+
     animationTimer = new QTimer(this);
-    // animationTimer->start(100); // 不需要，注释掉更干净
+    connect(animationTimer, SIGNAL(timeout()), this, SLOT(animatePlayer()));
+    animationTimer->start(150);
 
     // 关键修复：打开时自动获取焦点，保证按键立刻能用
     setFocus();
+
+    // 返回主菜单按钮 (1150, 0 位置)
+    QPushButton *backBtn = new QPushButton(this);
+    backBtn->setGeometry(1050, 0, 100, 60);
+    backBtn->setText("返回");
+    backBtn->setStyleSheet("QPushButton { border-image: url(" WALL "); color: black; font-weight: bold; }"
+                           "QPushButton:hover { background: rgba(255,255,255,100); }");
+    backBtn->setFocusPolicy(Qt::NoFocus);
+    connect(backBtn, SIGNAL(clicked()), this, SIGNAL(returnToMenu()));
 }
 
 MazeWidget::~MazeWidget()
@@ -136,7 +156,11 @@ void MazeWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
-    painter.fillRect(rect(), Qt::black);
+    if (!m_bgPixmap.isNull()) {
+        painter.drawPixmap(rect(), m_bgPixmap);
+    } else {
+        painter.fillRect(rect(), Qt::black);
+    }
 
     int ox = (width() - mazeWidth * cellSize) / 2;
     int oy = (height() - mazeHeight * cellSize) / 2;
@@ -145,17 +169,34 @@ void MazeWidget::paintEvent(QPaintEvent *event)
         for (int x = 0; x < mazeWidth; x++) {
             int px = ox + x * cellSize;
             int py = oy + y * cellSize;
-            painter.fillRect(px, py, cellSize, cellSize,
-                             maze[y][x] ? Qt::darkGray : Qt::white);
+            if (maze[y][x]) {
+                if (!m_wallPixmap.isNull()) {
+                    painter.drawPixmap(px, py, cellSize, cellSize, m_wallPixmap);
+                } else {
+                    painter.fillRect(px, py, cellSize, cellSize, Qt::darkGray);
+                }
+            }
         }
     }
 
     // 玩家
-    painter.fillRect(ox + playerX*cellSize + 2, oy + playerY*cellSize + 2,
-                     cellSize-4, cellSize-4, Qt::blue);
-    // 出口
-    painter.fillRect(ox + exitX*cellSize + 2, oy + exitY*cellSize + 2,
-                     cellSize-4, cellSize-4, Qt::green);
+    if (!m_playerPixmap[m_playerFrame].isNull()) {
+        painter.drawPixmap(ox + playerX*cellSize + 2, oy + playerY*cellSize + 2,
+                           cellSize-4, cellSize-4, m_playerPixmap[m_playerFrame]);
+    } else {
+        painter.fillRect(ox + playerX*cellSize + 2, oy + playerY*cellSize + 2,
+                         cellSize-4, cellSize-4, Qt::blue);
+    }
+    // 出口（宽度放大到1.1倍）
+    int doorW = (cellSize - 4) * 1.1;
+    int doorH = cellSize - 4;
+    if (!m_doorPixmap.isNull()) {
+        painter.drawPixmap(ox + exitX*cellSize + 2, oy + exitY*cellSize + 2,
+                           doorW, doorH, m_doorPixmap);
+    } else {
+        painter.fillRect(ox + exitX*cellSize + 2, oy + exitY*cellSize + 2,
+                         doorW, doorH, Qt::green);
+    }
 }
 
 void MazeWidget::keyPressEvent(QKeyEvent *event)
@@ -181,4 +222,10 @@ void MazeWidget::keyPressEvent(QKeyEvent *event)
             emit mazeCompleted();
         }
     }
+}
+
+void MazeWidget::animatePlayer()
+{
+    m_playerFrame = (m_playerFrame + 1) % 4;
+    update();
 }

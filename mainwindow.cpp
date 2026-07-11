@@ -121,6 +121,7 @@ void MainWindow::showMaze(int level)
     setFixedSize(size);
 
     connect(mazeWidget, SIGNAL(mazeCompleted()), gameController, SLOT(onMazeCompleted()));
+    connect(mazeWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
 }
 
 void MainWindow::showLinkGame(int difficulty)
@@ -143,6 +144,7 @@ void MainWindow::showLinkGame(int difficulty)
 
     connect(linkGameWidget, SIGNAL(gameWon()), gameController, SLOT(onLinkGameWon()));
     connect(linkGameWidget, SIGNAL(gameLost()), gameController, SLOT(onLinkGameLost()));
+    connect(linkGameWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
 
     this->activateWindow();
     linkGameWidget->setFocus();
@@ -169,6 +171,7 @@ void MainWindow::showMarioGame(int difficulty)
 
     connect(marioWidget, SIGNAL(gameWon()), gameController, SLOT(onMarioGameWon()));
     connect(marioWidget, SIGNAL(gameLost()), gameController, SLOT(onMarioGameLost()));
+    connect(marioWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
 
     this->activateWindow();
     marioWidget->setFocus();
@@ -195,6 +198,7 @@ void MainWindow::showHollowKnightGame(int difficulty)
 
     connect(hollowKnightWidget, SIGNAL(gameWon()), gameController, SLOT(onHollowKnightWon()));
     connect(hollowKnightWidget, SIGNAL(gameLost()), gameController, SLOT(onHollowKnightLost()));
+    connect(hollowKnightWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
 
     this->activateWindow();
     hollowKnightWidget->setFocus();

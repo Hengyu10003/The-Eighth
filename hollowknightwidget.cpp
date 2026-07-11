@@ -3,6 +3,7 @@
 #include <QTime>
 #include <QtMath>
 #include <cmath>
+#include <QPushButton>
 
 HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize size)
     : QWidget(parent)
@@ -51,6 +52,15 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     gameTimer = new QTimer(this);
     connect(gameTimer, SIGNAL(timeout()), this, SLOT(updateGame()));
     gameTimer->start(50);
+
+    // 返回主菜单按钮
+    QPushButton *backBtn = new QPushButton(this);
+    backBtn->setGeometry(1150, 0, 50, 30);
+    backBtn->setText("返回");
+    backBtn->setStyleSheet("QPushButton { background-color: rgba(200,200,200,200); border: 1px solid gray; border-radius: 5px; }"
+                           "QPushButton:hover { background-color: rgba(255,255,255,230); }");
+    backBtn->setFocusPolicy(Qt::NoFocus);
+    connect(backBtn, SIGNAL(clicked()), this, SIGNAL(returnToMenu()));
 }
 
 HollowKnightWidget::~HollowKnightWidget() {}

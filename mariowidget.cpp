@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QTime>
 #include <cmath>
+#include <QPushButton>
 
 // ★ 实时读取键盘状态的辅助函数
 static bool isKeyDown(Qt::Key qtKey)
@@ -38,16 +39,50 @@ MarioWidget::MarioWidget(QWidget *parent, int difficulty, QSize size)
     , enemiesKilled(0)
     , cameraX(0)
     , m_gameOver(false)
+    , m_enemyPixmap(GUAI)
+    , m_platformPixmap(ZHUAN)
+    , m_coinPixmap1(BI1)
+    , m_coinPixmap2(BI2)
+    , m_bgPixmap(MARIO_B)
+    , m_playerWidth(51)
+    , m_playerHeight(51)
+    , m_coinFrame(0)
+    , m_coinFrameCounter(0)
+    , m_playerFrame(0)
+    , m_playerFrameCounter(0)
 {
     setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
+
+    // 玩家大小是怪兽的1.7倍：51×51
+    m_playerWidth = 51;
+    m_playerHeight = 51;
+
+    // 加载玩家动画图片
+    m_playerPixmapL[0].load(TUAN1_l);
+    m_playerPixmapL[1].load(TUAN2_l);
+    m_playerPixmapL[2].load(TUAN3_l);
+    m_playerPixmapL[3].load(TUAN4_l);
+    m_playerPixmapR[0].load(TUAN1_r);
+    m_playerPixmapR[1].load(TUAN2_r);
+    m_playerPixmapR[2].load(TUAN3_r);
+    m_playerPixmapR[3].load(TUAN4_r);
 
     initLevel();
 
     gameTimer = new QTimer(this);
     connect(gameTimer, SIGNAL(timeout()), this, SLOT(updateGame()));
     gameTimer->start(30);
+
+    // 返回主菜单按钮
+    QPushButton *backBtn = new QPushButton(this);
+    backBtn->setGeometry(1090, 0, 98, 59);
+    backBtn->setText("返回");
+    backBtn->setStyleSheet("QPushButton { border-image: url(" ZHUAN "); color: black; font-weight: bold; }"
+                           "QPushButton:hover { background: rgba(255,255,255,100); }");
+    backBtn->setFocusPolicy(Qt::NoFocus);
+    connect(backBtn, SIGNAL(clicked()), this, SIGNAL(returnToMenu()));
 }
 
 MarioWidget::~MarioWidget() {}
@@ -138,9 +173,7 @@ void MarioWidget::movePlayer()
 {
     const double GRAVITY = 0.8;
     const double MAX_FALL_SPEED = 15;
-    double MOVE_SPEED = 3.0;
-    if (difficulty == 2) MOVE_SPEED = 4.0;
-    else if (difficulty == 3) MOVE_SPEED = 5.0;
+    double MOVE_SPEED = 5.0;
 
     // ===== 用 GetAsyncKeyState 直接读键盘 =====
     bool keyLeft  = isKeyDown(Qt::Key_A) || isKeyDown(Qt::Key_Left);
@@ -202,7 +235,7 @@ void MarioWidget::movePlayer()
     if (cameraX < 0) cameraX = 0;
     if (cameraX > WORLD_WIDTH - width()) cameraX = WORLD_WIDTH - width();
 
-    QRect playerRect(playerWorldX, playerY, 30, 40);
+    QRect playerRect(playerWorldX, playerY, m_playerWidth, m_playerHeight);
 
     // ===== 金币 =====
     for (Coin &c : coinList) {
@@ -296,36 +329,67 @@ void MarioWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
-    painter.fillRect(rect(), QColor(135, 206, 235));
+    if (!m_bgPixmap.isNull()) {
+        painter.drawPixmap(rect(), m_bgPixmap);
+    } else {
+        painter.fillRect(rect(), QColor(135, 206, 235));
+    }
 
     for (const Platform &p : platforms) {
         double sx = p.x - cameraX;
         if (sx + p.width < -50 || sx > width() + 50) continue;
-        painter.fillRect(sx, p.y, p.width, p.height, Qt::green);
+        if (!m_platformPixmap.isNull()) {
+            painter.drawPixmap(sx, p.y, p.width, p.height, m_platformPixmap);
+        } else {
+            painter.fillRect(sx, p.y, p.width, p.height, Qt::green);
+        }
     }
 
     for (const Coin &c : coinList) {
         double sx = c.x - cameraX;
         if (sx < -50 || sx > width() + 50) continue;
         if (!c.collected) {
-            painter.setBrush(Qt::yellow);
-            painter.drawEllipse(sx, c.y, 20, 20);
+            QPixmap &coinPix = (m_coinFrame == 0) ? m_coinPixmap1 : m_coinPixmap2;
+            if (!coinPix.isNull()) {
+                painter.drawPixmap(sx, c.y, 20, 20, coinPix);
+            } else {
+                painter.setBrush(Qt::yellow);
+                painter.drawEllipse(sx, c.y, 20, 20);
+            }
         }
     }
 
     for (const Enemy &e : enemies) {
         double sx = e.x - cameraX;
         if (sx < -50 || sx > width() + 50) continue;
-        if (e.alive) painter.fillRect(sx, e.y, 30, 30, Qt::red);
+        if (!e.alive) continue;
+        if (!m_enemyPixmap.isNull()) {
+            painter.drawPixmap(sx, e.y, 30, 30, m_enemyPixmap);
+        } else {
+            painter.fillRect(sx, e.y, 30, 30, Qt::red);
+        }
     }
 
-    painter.fillRect(PLAYER_SCREEN_X, playerY, 30, 40, Qt::blue);
+    // 玩家动画：根据朝向选择对应帧
+    QPixmap currentFrame;
+    if (facingDirection == 1) {
+        currentFrame = m_playerPixmapR[m_playerFrame];
+    } else {
+        currentFrame = m_playerPixmapL[m_playerFrame];
+    }
+    if (!currentFrame.isNull()) {
+        painter.drawPixmap(PLAYER_SCREEN_X, playerY, m_playerWidth, m_playerHeight, currentFrame);
+    } else {
+        painter.fillRect(PLAYER_SCREEN_X, playerY, m_playerWidth, m_playerHeight, Qt::blue);
+    }
 
     // 攻击特效（只要按住 J 就显示）
     bool keyAttackHeld = isKeyDown(Qt::Key_J) || keyAttack;
     if (keyAttackHeld) {
-        int ax = (facingDirection == 1) ? PLAYER_SCREEN_X + 25 : PLAYER_SCREEN_X - 55;
-        painter.fillRect(ax, playerY - 20, 50, 80, QColor(255, 255, 0, 80));
+        int ax = (facingDirection == 1) ? PLAYER_SCREEN_X + m_playerWidth / 2 : PLAYER_SCREEN_X - 45;
+        painter.setBrush(QColor(255, 255, 0, 80));
+        painter.setPen(Qt::NoPen);
+        painter.drawEllipse(ax, playerY - 15, 60, 60);
     }
 
     painter.setPen(Qt::black);
@@ -335,11 +399,10 @@ void MarioWidget::paintEvent(QPaintEvent *event)
     painter.setFont(font);
     int targetScore = (difficulty == 1) ? 15 : (difficulty == 2) ? 20 : 30;
     painter.drawText(10, 25, QString::fromUtf8("\xe5\xbe\x97\xe5\x88\x86: %1 / %2").arg(score).arg(targetScore));
-    painter.drawText(10, 65, QString::fromUtf8("\xe6\x95\x8c\xe4\xba\xba: %1").arg(enemiesKilled));
-    if (invincibleCount > 0)    // ★ 显示剩余护体次数
-    painter.drawText(10, 85, QString::fromUtf8("\xe2\x99\xaa \xe9\x87\x91\xe8\xba\xab: %1 \xe6\xac\xa1").arg(invincibleCount));
-    painter.drawText(10, 45, QString::fromUtf8("\xe9\x87\x91\xe5\xb8\x81: %1").arg(coins));
-    painter.drawText(10, 65, QString::fromUtf8("\xe6\x95\x8c\xe4\xba\xba: %1").arg(enemiesKilled));
+    painter.drawText(10, 65, QString::fromUtf8("\xe9\x87\x91\xe5\xb8\x81: %1").arg(coins));
+    painter.drawText(10, 105, QString::fromUtf8("\xe6\x95\x8c\xe4\xba\xba: %1").arg(enemiesKilled));
+    if (invincibleCount > 0)
+        painter.drawText(10, 145, QString::fromUtf8("\xe2\x99\xaa \xe9\x87\x91\xe8\xba\xab: %1 \xe6\xac\xa1").arg(invincibleCount));
 }
 
 // ===================== ★ 按键处理（简化，只处理跳和攻击）=====================
@@ -373,6 +436,25 @@ void MarioWidget::keyReleaseEvent(QKeyEvent *event)
 
 void MarioWidget::updateGame()
 {
+    // 金币动画：每0.2秒切换帧（约7个30ms周期）
+    m_coinFrameCounter++;
+    if (m_coinFrameCounter >= 7) {
+        m_coinFrameCounter = 0;
+        m_coinFrame = (m_coinFrame + 1) % 2;
+    }
+
+    // 玩家走路动画：移动时每0.15秒切换帧（约5个30ms周期）
+    if (playerVelocityX != 0) {
+        m_playerFrameCounter++;
+        if (m_playerFrameCounter >= 5) {
+            m_playerFrameCounter = 0;
+            m_playerFrame = (m_playerFrame + 1) % 4;
+        }
+    } else {
+        m_playerFrame = 0;
+        m_playerFrameCounter = 0;
+    }
+
     movePlayer();
     update();
 }
