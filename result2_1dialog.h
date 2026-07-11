@@ -14,7 +14,6 @@ class Result2_1Dialog : public QDialog
 public:
     Result2_1Dialog(QWidget *parent = 0);
     ~Result2_1Dialog();
-    void setResult(bool won);
 
 signals:
     void resultSelected(int result);
@@ -23,7 +22,6 @@ private slots:
     void onDifficultyUpClicked();
     void onNextLevelClicked();
     void onBackToMenuClicked();
-    void onRetryClicked();
 
 private:
     Ui::Result2_1Dialog *ui;

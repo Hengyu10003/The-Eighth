@@ -16,19 +16,6 @@ Result1_2Dialog::~Result1_2Dialog()
     delete ui;
 }
 
-void Result1_2Dialog::setResult(bool won)
-{
-    if (won) {
-        ui->difficultyUpBtn->show();
-        ui->nextLevelBtn->show();
-        ui->backToMenuBtn->hide();
-    } else {
-        ui->difficultyUpBtn->hide();
-        ui->nextLevelBtn->hide();
-        ui->backToMenuBtn->show();
-    }
-}
-
 void Result1_2Dialog::onDifficultyUpClicked()
 {
     emit resultSelected(0);
@@ -44,11 +31,5 @@ void Result1_2Dialog::onNextLevelClicked()
 void Result1_2Dialog::onBackToMenuClicked()
 {
     emit resultSelected(2);
-    accept();
-}
-
-void Result1_2Dialog::onRetryClicked()
-{
-    emit resultSelected(1);
     accept();
 }

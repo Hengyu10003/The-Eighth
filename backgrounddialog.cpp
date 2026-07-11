@@ -2,8 +2,8 @@
 #include "ui_backgrounddialog.h"
 
 BackgroundDialog::BackgroundDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::BackgroundDialog)
+    : QDialog(parent),
+      ui(new Ui::BackgroundDialog)
 {
     ui->setupUi(this);
 

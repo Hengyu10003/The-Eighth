@@ -14,7 +14,7 @@ class HollowKnightWidget : public QWidget
     Q_OBJECT
 
 public:
-    HollowKnightWidget(QWidget *parent = 0, int difficulty = 1);
+    HollowKnightWidget(QWidget *parent = 0, int difficulty = 1, QSize size = QSize(1000, 700));
     ~HollowKnightWidget();
 
     void setDifficulty(int difficulty);

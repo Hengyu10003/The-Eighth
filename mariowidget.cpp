@@ -20,7 +20,7 @@ static bool isKeyDown(Qt::Key qtKey)
     return GetAsyncKeyState(vk) & 0x8000;
 }
 
-MarioWidget::MarioWidget(QWidget *parent, int difficulty)
+MarioWidget::MarioWidget(QWidget *parent, int difficulty, QSize size)
     : QWidget(parent)
     , difficulty(difficulty)
     , playerWorldX(0)
@@ -29,7 +29,7 @@ MarioWidget::MarioWidget(QWidget *parent, int difficulty)
     , playerVelocityY(0)
     , isOnGround(false)
     , jumpCount(0)
-    , invincibleCount(2)    // ★ 初始2次护体
+    , invincibleCount(2)    // 金身护体2次
     , keyAttack(false)
     , lastDirection(1)
     , facingDirection(1)
@@ -37,8 +37,9 @@ MarioWidget::MarioWidget(QWidget *parent, int difficulty)
     , coins(0)
     , enemiesKilled(0)
     , cameraX(0)
+    , m_gameOver(false)
 {
-    setFixedSize(800, 600);
+    setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
 
@@ -78,6 +79,7 @@ void MarioWidget::reset()
     coins = 0;
     enemiesKilled = 0;
     cameraX = 0;
+    m_gameOver = false;
     initLevel();
 }
 
@@ -172,7 +174,8 @@ void MarioWidget::movePlayer()
     // ===== 平台碰撞 =====
     isOnGround = false;
     for (const Platform &p : platforms) {
-        if (playerWorldX + 30 <= p.x || playerWorldX >= p.x + p.width)
+        double centerX = playerWorldX + 15;
+        if (centerX < p.x || centerX > p.x + p.width)
             continue;
         if (playerVelocityY >= 0 &&
             prevBottom <= p.y + 15 &&
@@ -186,7 +189,11 @@ void MarioWidget::movePlayer()
     }
 
     if (playerY > height() + 100) {
-        emit gameLost();
+        if (!m_gameOver) {
+            m_gameOver = true;
+            gameTimer->stop();
+            emit gameLost();
+        }
         return;
     }
 
@@ -264,7 +271,11 @@ void MarioWidget::movePlayer()
                     if (facingDirection == 1) e.x -= 60;
                     else e.x += 60;
                 } else {
-                    emit gameLost();
+                    if (!m_gameOver) {
+                        m_gameOver = true;
+                        gameTimer->stop();
+                        emit gameLost();
+                    }
                     return;
                 }
             }
@@ -274,8 +285,11 @@ void MarioWidget::movePlayer()
     // ===== 到达终点 =====
     // ★ 胜利分数按难度：简单15、中等20、困难30
     int targetScore = (difficulty == 1) ? 15 : (difficulty == 2) ? 20 : 30;
-    if (score >= targetScore)
+    if (score >= targetScore && !m_gameOver) {
+        m_gameOver = true;
+        gameTimer->stop();
         emit gameWon();
+    }
 }
 
 void MarioWidget::paintEvent(QPaintEvent *event)

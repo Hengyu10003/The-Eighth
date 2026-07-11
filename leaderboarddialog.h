@@ -2,9 +2,8 @@
 #define LEADERBOARDDIALOG_H
 
 #include <QDialog>
-#include <QTableWidget>
-
-#include "config.h"
+#include <QList>
+#include <QString>
 
 namespace Ui {
 class LeaderboardDialog;

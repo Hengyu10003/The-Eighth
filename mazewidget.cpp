@@ -6,14 +6,14 @@
 #include <QDebug>
 #include <QKeyEvent>
 
-MazeWidget::MazeWidget(QWidget *parent, int level)
+MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
     : QWidget(parent)
     , level(level)
     , playerX(1)
     , playerY(1)
     , maze(nullptr)
 {
-    setFixedSize(800, 600);
+    setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);  // 必须有，否则键盘不响应
 
     switch (level) {

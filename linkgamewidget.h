@@ -16,7 +16,7 @@ class LinkGameWidget : public QWidget
     Q_OBJECT
 
 public:
-    LinkGameWidget(QWidget *parent = 0, int difficulty = 1);
+    LinkGameWidget(QWidget *parent = 0, int difficulty = 1, QSize size = QSize(800, 600));
     ~LinkGameWidget();
 
     void setDifficulty(int difficulty);

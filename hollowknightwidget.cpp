@@ -4,7 +4,7 @@
 #include <QtMath>
 #include <cmath>
 
-HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty)
+HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize size)
     : QWidget(parent)
     , difficulty(difficulty)
     , playerX(100)
@@ -26,7 +26,7 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty)
     , bossMoveTimer(0)
     , bossShootTimer(0)
 {
-    setFixedSize(1000, 700);
+    setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
 

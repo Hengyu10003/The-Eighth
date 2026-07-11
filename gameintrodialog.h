@@ -2,10 +2,10 @@
 #define GAMEINTRODIALOG_H
 
 #include <QDialog>
-#include <QPushButton>
-#include <QLabel>
 
-#include "config.h"
+namespace Ui {
+class GameIntroDialog;
+}
 
 class GameIntroDialog : public QDialog
 {
@@ -19,7 +19,7 @@ private slots:
     void onBackClicked();
 
 private:
-    QPushButton *backBtn;
+    Ui::GameIntroDialog *ui;
     int currentLevel;
 };
 

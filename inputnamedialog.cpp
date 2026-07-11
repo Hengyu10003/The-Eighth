@@ -2,10 +2,11 @@
 #include "ui_inputnamedialog.h"
 
 InputNameDialog::InputNameDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::InputNameDialog)
+    : QDialog(parent),
+      ui(new Ui::InputNameDialog)
 {
     ui->setupUi(this);
+    ui->nameInput->setAlignment(Qt::AlignCenter);
 
     connect(ui->confirmBtn, SIGNAL(clicked()), this, SLOT(onConfirmClicked()));
     connect(ui->cancelBtn, SIGNAL(clicked()), this, SLOT(onCancelClicked()));

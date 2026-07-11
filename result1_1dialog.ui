@@ -10,6 +10,9 @@
     <height>621</height>
    </rect>
   </property>
+  <property name="windowTitle">
+   <string>胜利</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">border-image: url(:/images/l_1_1.png);</string>
   </property>

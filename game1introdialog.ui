@@ -10,6 +10,9 @@
     <height>865</height>
    </rect>
   </property>
+  <property name="windowTitle">
+   <string>游戏1介绍</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">border-image: url(:/images/level1_intro_img.png);</string>
   </property>

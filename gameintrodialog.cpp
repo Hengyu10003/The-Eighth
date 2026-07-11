@@ -1,24 +1,18 @@
 #include "gameintrodialog.h"
+#include "ui_gameintrodialog.h"
 
 GameIntroDialog::GameIntroDialog(QWidget *parent, int level)
     : QDialog(parent)
+    , ui(new Ui::GameIntroDialog)
     , currentLevel(level)
 {
-    setWindowTitle("游戏介绍");
-    setFixedSize(500, 400);
-
-    QLabel *imageLabel = new QLabel(this);
-    imageLabel->setGeometry(10, 10, 480, 320);
-    imageLabel->setStyleSheet("background-color: #333333;");
-
-    backBtn = new QPushButton("返回", this);
-    backBtn->setGeometry(200, 340, 100, 40);
-
-    connect(backBtn, SIGNAL(clicked()), this, SLOT(onBackClicked()));
+    ui->setupUi(this);
+    connect(ui->backBtn, SIGNAL(clicked()), this, SLOT(onBackClicked()));
 }
 
 GameIntroDialog::~GameIntroDialog()
 {
+    delete ui;
 }
 
 void GameIntroDialog::onBackClicked()

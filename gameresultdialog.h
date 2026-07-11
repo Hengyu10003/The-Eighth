@@ -2,10 +2,10 @@
 #define GAMERESULTDIALOG_H
 
 #include <QDialog>
-#include <QPushButton>
-#include <QLabel>
 
-#include "config.h"
+namespace Ui {
+class GameResultDialog;
+}
 
 class GameResultDialog : public QDialog
 {
@@ -16,29 +16,24 @@ public:
     ~GameResultDialog();
 
     void setResult(bool won, int level, int difficulty);
-    void setSkipConfirm(bool skip);  // ★ 新增
+    void setSkipConfirm(bool skip);
 
 signals:
     void resultSelected(int result);
 
 private slots:
+    void onConfirmClicked();
     void onRetryClicked();
     void onNextLevelClicked();
     void onGoToNextLevelClicked();
     void onBackToMenuClicked();
-    void onConfirmClicked();
 
 private:
-    QPushButton *retryBtn;
-    QPushButton *nextLevelBtn;
-    QPushButton *goToNextLevelBtn;
-    QPushButton *backToMenuBtn;
-    QPushButton *confirmBtn;
-
+    Ui::GameResultDialog *ui;
     bool isWon;
     int currentLevel;
     int currentDifficulty;
-    bool skipConfirm;  // ★ 新增
+    bool skipConfirm;
 };
 
 #endif // GAMERESULTDIALOG_H

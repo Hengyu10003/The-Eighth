@@ -3,8 +3,6 @@
 
 #include <QDialog>
 
-#include "config.h"
-
 namespace Ui {
 class InputNameDialog;
 }

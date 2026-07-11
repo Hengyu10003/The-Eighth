@@ -14,23 +14,8 @@ Result3_3Dialog::~Result3_3Dialog()
     delete ui;
 }
 
-void Result3_3Dialog::setResult(bool won)
-{
-    if (won) {
-        ui->nextLevelBtn->show();
-    } else {
-        ui->nextLevelBtn->hide();
-    }
-}
-
 void Result3_3Dialog::onNextLevelClicked()
 {
     emit resultSelected(3);
-    accept();
-}
-
-void Result3_3Dialog::onRetryClicked()
-{
-    emit resultSelected(1);
     accept();
 }

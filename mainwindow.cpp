@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QApplication>
-#include <QPixmap>
 #include <QPainter>
 #include "gamecontroller.h"
 #include "config.h"
@@ -15,7 +14,9 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    playerName(""),
+    bgFrame(0),
+    bgAnimTimer(nullptr),
+    gameTimer(nullptr),
     elapsedTime(0),
     currentLevel(1),
     currentDifficulty(1),
@@ -25,10 +26,6 @@ MainWindow::MainWindow(QWidget *parent) :
     linkGameWidget(nullptr),
     marioWidget(nullptr),
     hollowKnightWidget(nullptr),
-    playerNameLabel(nullptr),
-    gameTimer(nullptr),
-    bgFrame(0),
-    bgAnimTimer(nullptr),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -38,30 +35,23 @@ MainWindow::MainWindow(QWidget *parent) :
 
     gameController = new GameController(this);
 
+    // 加载4张背景图
     bgPixmap[0].load(STARTGAME_BACKGROUND1);
     bgPixmap[1].load(STARTGAME_BACKGROUND2);
     bgPixmap[2].load(STARTGAME_BACKGROUND3);
     bgPixmap[3].load(STARTGAME_BACKGROUND4);
 
+    // 背景动画定时器
     bgAnimTimer = new QTimer(this);
     connect(bgAnimTimer, SIGNAL(timeout()), this, SLOT(updateBgFrame()));
     bgAnimTimer->start(450);
 
-    // 连接 UI 文件中的按钮信号
+    // 连接 UI 文件中的按钮
     connect(ui->inputNameBtn, SIGNAL(clicked()), this, SLOT(onInputNameClicked()));
     connect(ui->startGameBtn, SIGNAL(clicked()), this, SLOT(onStartGameClicked()));
     connect(ui->backgroundBtn, SIGNAL(clicked()), this, SLOT(onBackgroundClicked()));
     connect(ui->leaderboardBtn, SIGNAL(clicked()), this, SLOT(onLeaderboardClicked()));
     connect(ui->exitBtn, SIGNAL(clicked()), this, SLOT(onExitClicked()));
-
-    // 添加玩家名标签到布局
-    playerNameLabel = new QLabel("", ui->centralwidget);
-    playerNameLabel->setAlignment(Qt::AlignCenter);
-    playerNameLabel->setStyleSheet("QLabel { color: white; font-size: 18px; font-weight: bold; }");
-    QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->centralwidget->layout());
-    if (layout) {
-        layout->insertWidget(0, playerNameLabel);
-    }
 
     showMainMenu();
 }
@@ -74,64 +64,61 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::paintEvent(QPaintEvent *event)
+{
+    QMainWindow::paintEvent(event);
+    QPainter painter(this);
+    if (!bgPixmap[bgFrame].isNull()) {
+        painter.drawPixmap(rect(), bgPixmap[bgFrame]);
+    }
+}
+
 void MainWindow::updateBgFrame()
 {
     bgFrame = (bgFrame + 1) % 4;
-    if (!bgPixmap[bgFrame].isNull()) {
-        QPalette palette = ui->centralwidget->palette();
-        palette.setBrush(QPalette::Background, bgPixmap[bgFrame]);
-        ui->centralwidget->setPalette(palette);
-        ui->centralwidget->update();
-    }
+    update();
+}
+
+QSize MainWindow::gameSize() const
+{
+    return !bgPixmap[0].isNull() ? bgPixmap[0].size() : QSize(800, 600);
 }
 
 void MainWindow::showMainMenu()
 {
-    // 窗口大小适应背景图片
+    // 窗口大小 = 背景图片大小
     if (!bgPixmap[0].isNull()) {
         setFixedSize(bgPixmap[0].size());
     }
 
-    // 移除当前的中心控件（游戏界面），但不删除 ui->centralwidget
+    // 移除游戏界面，恢复 UI 设计的 centralwidget
     QWidget *old = takeCentralWidget();
     if (old && old != ui->centralwidget) {
-        delete old;
+        old->deleteLater();
     }
-
-    // 恢复 ui->centralwidget 作为中心控件
-    setCentralWidget(ui->centralwidget);
-    ui->centralwidget->show();
-
-    // 设置背景动画
-    QPalette palette = ui->centralwidget->palette();
-    if (!bgPixmap[0].isNull()) {
-        palette.setBrush(QPalette::Background, bgPixmap[bgFrame]);
-    } else {
-        palette.setColor(QPalette::Background, QColor(30, 30, 30));
-    }
-    ui->centralwidget->setPalette(palette);
-    ui->centralwidget->setAutoFillBackground(true);
-
-    if (!playerName.isEmpty()) {
-        playerNameLabel->setText("当前玩家：" + playerName);
-    }
-}
-
-void MainWindow::showMaze(int level)
-{
-    // 移除当前中心控件，保护 ui->centralwidget 不被删除
-    QWidget *old = takeCentralWidget();
-    if (old && old != ui->centralwidget) {
-        delete old;
-    }
-    // 如果 old 是 ui->centralwidget，只隐藏不删除
     if (old == ui->centralwidget) {
         old->hide();
     }
 
-    mazeWidget = new MazeWidget(this, level);
+    setCentralWidget(ui->centralwidget);
+    ui->centralwidget->show();
+    ui->centralwidget->setStyleSheet("");
+}
+
+void MainWindow::showMaze(int level)
+{
+    QWidget *old = takeCentralWidget();
+    if (old && old != ui->centralwidget) {
+        old->deleteLater();
+    }
+    if (old == ui->centralwidget) {
+        old->hide();
+    }
+
+    QSize size = gameSize();
+    mazeWidget = new MazeWidget(this, level, size);
     setCentralWidget(mazeWidget);
-    resize(mazeWidget->size());
+    setFixedSize(size);
 
     connect(mazeWidget, SIGNAL(mazeCompleted()), gameController, SLOT(onMazeCompleted()));
 }
@@ -140,7 +127,7 @@ void MainWindow::showLinkGame(int difficulty)
 {
     QWidget *old = takeCentralWidget();
     if (old && old != ui->centralwidget) {
-        delete old;
+        old->deleteLater();
     }
     if (old == ui->centralwidget) {
         old->hide();
@@ -150,9 +137,9 @@ void MainWindow::showLinkGame(int difficulty)
     marioWidget = nullptr;
     hollowKnightWidget = nullptr;
 
-    linkGameWidget = new LinkGameWidget(this, difficulty);
+    linkGameWidget = new LinkGameWidget(this, difficulty, gameSize());
     setCentralWidget(linkGameWidget);
-    resize(linkGameWidget->size());
+    setFixedSize(gameSize());
 
     connect(linkGameWidget, SIGNAL(gameWon()), gameController, SLOT(onLinkGameWon()));
     connect(linkGameWidget, SIGNAL(gameLost()), gameController, SLOT(onLinkGameLost()));
@@ -170,15 +157,15 @@ void MainWindow::showMarioGame(int difficulty)
 {
     QWidget *old = takeCentralWidget();
     if (old && old != ui->centralwidget) {
-        delete old;
+        old->deleteLater();
     }
     if (old == ui->centralwidget) {
         old->hide();
     }
 
-    marioWidget = new MarioWidget(this, difficulty);
+    marioWidget = new MarioWidget(this, difficulty, gameSize());
     setCentralWidget(marioWidget);
-    resize(marioWidget->size());
+    setFixedSize(gameSize());
 
     connect(marioWidget, SIGNAL(gameWon()), gameController, SLOT(onMarioGameWon()));
     connect(marioWidget, SIGNAL(gameLost()), gameController, SLOT(onMarioGameLost()));
@@ -196,15 +183,15 @@ void MainWindow::showHollowKnightGame(int difficulty)
 {
     QWidget *old = takeCentralWidget();
     if (old && old != ui->centralwidget) {
-        delete old;
+        old->deleteLater();
     }
     if (old == ui->centralwidget) {
         old->hide();
     }
 
-    hollowKnightWidget = new HollowKnightWidget(this, difficulty);
+    hollowKnightWidget = new HollowKnightWidget(this, difficulty, gameSize());
     setCentralWidget(hollowKnightWidget);
-    resize(hollowKnightWidget->size());
+    setFixedSize(gameSize());
 
     connect(hollowKnightWidget, SIGNAL(gameWon()), gameController, SLOT(onHollowKnightWon()));
     connect(hollowKnightWidget, SIGNAL(gameLost()), gameController, SLOT(onHollowKnightLost()));
@@ -292,9 +279,6 @@ void MainWindow::onInputNameClicked()
     InputNameDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         playerName = dialog.getPlayerName();
-        if (playerNameLabel && !playerName.isEmpty()) {
-            playerNameLabel->setText("当前玩家：" + playerName);
-        }
     }
 }
 

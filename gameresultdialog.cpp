@@ -1,50 +1,28 @@
 #include "gameresultdialog.h"
+#include "ui_gameresultdialog.h"
 
 GameResultDialog::GameResultDialog(QWidget *parent)
     : QDialog(parent)
+    , ui(new Ui::GameResultDialog)
     , isWon(false)
     , currentLevel(1)
     , currentDifficulty(1)
-    , skipConfirm(false)   // ★ 新增
+    , skipConfirm(false)
 {
-    setWindowTitle("游戏结果");
-    setFixedSize(400, 300);
+    ui->setupUi(this);
 
-    QLabel *imageLabel = new QLabel(this);
-    imageLabel->setGeometry(10, 10, 380, 180);
-    imageLabel->setStyleSheet("background-color: #333333;");
-
-    confirmBtn = new QPushButton("确认", this);
-    confirmBtn->setGeometry(150, 200, 100, 40);
-
-    retryBtn = new QPushButton("重新开始", this);
-    retryBtn->setGeometry(50, 200, 120, 40);
-    retryBtn->hide();
-
-    nextLevelBtn = new QPushButton("难度升级", this);
-    nextLevelBtn->setGeometry(130, 200, 140, 40);
-    nextLevelBtn->hide();
-
-    goToNextLevelBtn = new QPushButton("下一关", this);
-    goToNextLevelBtn->setGeometry(230, 200, 120, 40);
-    goToNextLevelBtn->hide();
-
-    backToMenuBtn = new QPushButton("返回主菜单", this);
-    backToMenuBtn->setGeometry(130, 250, 140, 40);
-    backToMenuBtn->hide();
-
-    connect(confirmBtn, SIGNAL(clicked()), this, SLOT(onConfirmClicked()));
-    connect(retryBtn, SIGNAL(clicked()), this, SLOT(onRetryClicked()));
-    connect(nextLevelBtn, SIGNAL(clicked()), this, SLOT(onNextLevelClicked()));
-    connect(goToNextLevelBtn, SIGNAL(clicked()), this, SLOT(onGoToNextLevelClicked()));
-    connect(backToMenuBtn, SIGNAL(clicked()), this, SLOT(onBackToMenuClicked()));
+    connect(ui->confirmBtn, SIGNAL(clicked()), this, SLOT(onConfirmClicked()));
+    connect(ui->retryBtn, SIGNAL(clicked()), this, SLOT(onRetryClicked()));
+    connect(ui->nextLevelBtn, SIGNAL(clicked()), this, SLOT(onNextLevelClicked()));
+    connect(ui->goToNextLevelBtn, SIGNAL(clicked()), this, SLOT(onGoToNextLevelClicked()));
+    connect(ui->backToMenuBtn, SIGNAL(clicked()), this, SLOT(onBackToMenuClicked()));
 }
 
 GameResultDialog::~GameResultDialog()
 {
+    delete ui;
 }
 
-// ★ 新增
 void GameResultDialog::setSkipConfirm(bool skip)
 {
     skipConfirm = skip;
@@ -56,13 +34,12 @@ void GameResultDialog::setResult(bool won, int level, int difficulty)
     currentLevel = level;
     currentDifficulty = difficulty;
 
-    confirmBtn->show();
-    retryBtn->hide();
-    nextLevelBtn->hide();
-    goToNextLevelBtn->hide();
-    backToMenuBtn->hide();
+    ui->confirmBtn->show();
+    ui->retryBtn->hide();
+    ui->nextLevelBtn->hide();
+    ui->goToNextLevelBtn->hide();
+    ui->backToMenuBtn->hide();
 
-    // ★ 新增：跳过确认步骤
     if (skipConfirm && isWon) {
         onConfirmClicked();
     }
@@ -70,44 +47,39 @@ void GameResultDialog::setResult(bool won, int level, int difficulty)
 
 void GameResultDialog::onConfirmClicked()
 {
-    confirmBtn->hide();
+    ui->confirmBtn->hide();
 
     if (isWon) {
         if (currentDifficulty < 3) {
-            nextLevelBtn->setText("难度升级");
-            nextLevelBtn->show();
-
-            goToNextLevelBtn->setText("下一关");
-            goToNextLevelBtn->show();
-
-            retryBtn->hide();
+            ui->nextLevelBtn->setText("难度升级");
+            ui->nextLevelBtn->show();
+            ui->goToNextLevelBtn->setText("下一关");
+            ui->goToNextLevelBtn->show();
+            ui->retryBtn->hide();
         } else {
             if (currentLevel < 3) {
-                goToNextLevelBtn->setText("下一关");
-                goToNextLevelBtn->show();
-                nextLevelBtn->hide();
-                retryBtn->hide();
+                ui->goToNextLevelBtn->setText("下一关");
+                ui->goToNextLevelBtn->show();
+                ui->nextLevelBtn->hide();
+                ui->retryBtn->hide();
             } else {
-                backToMenuBtn->show();
+                ui->backToMenuBtn->show();
             }
         }
     } else {
-        // 输了
-        retryBtn->setText("重新开始");
-        retryBtn->show();
+        ui->retryBtn->setText("重新开始");
+        ui->retryBtn->show();
 
         if (currentDifficulty == 1) {
-            // 简单模式：重新开始 或 返回主菜单
-            backToMenuBtn->setText("返回主菜单");     // ★ 原本是"返回"，改成"返回主菜单"
-            backToMenuBtn->show();
-            nextLevelBtn->hide();
-            goToNextLevelBtn->hide();
+            ui->backToMenuBtn->setText("返回主菜单");
+            ui->backToMenuBtn->show();
+            ui->nextLevelBtn->hide();
+            ui->goToNextLevelBtn->hide();
         } else {
-            // 中等或困难：重新开始 或 进入下一关卡
-            goToNextLevelBtn->setText("进入下一关卡");
-            goToNextLevelBtn->show();
-            backToMenuBtn->hide();
-            nextLevelBtn->hide();
+            ui->goToNextLevelBtn->setText("进入下一关卡");
+            ui->goToNextLevelBtn->show();
+            ui->backToMenuBtn->hide();
+            ui->nextLevelBtn->hide();
         }
     }
 }
@@ -121,11 +93,7 @@ void GameResultDialog::onRetryClicked()
 void GameResultDialog::onNextLevelClicked()
 {
     accept();
-    if (isWon) {
-        emit resultSelected(0);
-    } else {
-        emit resultSelected(1);
-    }
+    emit resultSelected(0);
 }
 
 void GameResultDialog::onGoToNextLevelClicked()

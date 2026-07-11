@@ -12,6 +12,8 @@
 #include "result3_1dialog.h"
 #include "result3_2dialog.h"
 #include "result3_3dialog.h"
+#include "gameresultdialog.h"
+#include "finaldialog.h"
 #include "leaderboarddialog.h"
 
 #include <QTimer>
@@ -22,17 +24,13 @@
 GameController::GameController(MainWindow *mainWindow)
     : QObject(mainWindow)
     , mainWindow(mainWindow)
-    , level1StartDialog(nullptr)
-    , level2StartDialog(nullptr)
-    , level3StartDialog(nullptr)
+    , gameResultDialog(nullptr)
 {
 }
 
 GameController::~GameController()
 {
-    delete level1StartDialog;
-    delete level2StartDialog;
-    delete level3StartDialog;
+    delete gameResultDialog;
 }
 
 void GameController::onMazeCompleted()
@@ -125,7 +123,18 @@ void GameController::onGameResult(int result)
 
     } else if (result == 2) {
         int curLevel = mainWindow->getCurrentLevel();
-        if (curLevel >= 2) {
+        if (curLevel == 3) {
+            FinalDialog dlg(mainWindow);
+            dlg.setResult("恭喜通关所有关卡！");
+            connect(&dlg, &FinalDialog::backToMenu, [this]() {
+                mainWindow->stopGameTimer();
+                saveLeaderboardEntry(mainWindow->getPlayerName(),
+                                     mainWindow->getCollectedFragments(),
+                                     mainWindow->getGameTime());
+                mainWindow->showMainMenu();
+            });
+            dlg.exec();
+        } else if (curLevel >= 2) {
             showLevelStart(curLevel);
         } else {
             returnToMainMenu();
@@ -138,60 +147,40 @@ void GameController::onGameResult(int result)
             mainWindow->setCurrentDifficulty(1);
             mainWindow->showMaze(mainWindow->getCurrentLevel());
         } else {
-            QMessageBox msgBox(mainWindow);
-            msgBox.setWindowTitle(QString::fromUtf8("\xe6\x81\xad\xe5\x96\x9c"));
-            msgBox.setText(QString::fromUtf8(
-                "\xe6\x81\xad\xe5\x96\x9c\xe9\x80\x9a\xe5\x85\xb3\xef\xbc\x81\n"
-                "\xe4\xbd\xa0\xe5\xb7\xb2\xe5\xae\x8c\xe6\x88\x90\xe6\x89\x80\xe6\x9c\x89\xe5\x85\xb3\xe5\x8d\xa1\xef\xbc\x81"
-            ));
-            msgBox.setIcon(QMessageBox::Information);
-            msgBox.addButton(QString::fromUtf8("\xe7\xa1\xae\xe5\xae\x9a"), QMessageBox::AcceptRole);
-            msgBox.exec();
-            returnToMainMenu();
+            FinalDialog dlg(mainWindow);
+            dlg.setResult("恭喜通关所有关卡！");
+            connect(&dlg, &FinalDialog::backToMenu, [this]() {
+                mainWindow->stopGameTimer();
+                saveLeaderboardEntry(mainWindow->getPlayerName(),
+                                     mainWindow->getCollectedFragments(),
+                                     mainWindow->getGameTime());
+                mainWindow->showMainMenu();
+            });
+            dlg.exec();
         }
     }
 }
 
 void GameController::showLevelStart(int level)
 {
-    switch (level) {
-    case 1:
-        delete level1StartDialog;
-        level1StartDialog = new Level1StartDialog(mainWindow);
-        connect(level1StartDialog, SIGNAL(accepted()), this, SLOT(onLevel1Start()));
-        connect(level1StartDialog, SIGNAL(rejected()), this, SLOT(returnToMainMenu()));
-        level1StartDialog->exec();
-        break;
-    case 2:
-        delete level2StartDialog;
-        level2StartDialog = new Level2StartDialog(mainWindow);
-        connect(level2StartDialog, SIGNAL(accepted()), this, SLOT(onLevel2Start()));
-        connect(level2StartDialog, SIGNAL(rejected()), this, SLOT(returnToMainMenu()));
-        level2StartDialog->exec();
-        break;
-    case 3:
-        delete level3StartDialog;
-        level3StartDialog = new Level3StartDialog(mainWindow);
-        connect(level3StartDialog, SIGNAL(accepted()), this, SLOT(onLevel3Start()));
-        connect(level3StartDialog, SIGNAL(rejected()), this, SLOT(returnToMainMenu()));
-        level3StartDialog->exec();
-        break;
+    // 根据关卡使用对应的 UI 设计对话框
+    QDialog *dialog = nullptr;
+    if (level == 1) {
+        dialog = new Level1StartDialog(mainWindow);
+    } else if (level == 2) {
+        dialog = new Level2StartDialog(mainWindow);
+    } else {
+        dialog = new Level3StartDialog(mainWindow);
     }
-}
 
-void GameController::onLevel1Start()
-{
-    mainWindow->showLinkGame(mainWindow->getCurrentDifficulty());
-}
+    int result = dialog->exec();
+    dialog->deleteLater();
 
-void GameController::onLevel2Start()
-{
-    mainWindow->showMarioGame(mainWindow->getCurrentDifficulty());
-}
-
-void GameController::onLevel3Start()
-{
-    mainWindow->showHollowKnightGame(mainWindow->getCurrentDifficulty());
+    if (result == QDialog::Rejected) {
+        returnToMainMenu();
+    } else {
+        onLevelStart(level);
+    }
 }
 
 void GameController::returnToMainMenu()
@@ -207,89 +196,42 @@ void GameController::returnToMainMenu()
 
 void GameController::handleGameResult(bool won, int level, int difficulty)
 {
-    QDialog *dlg = nullptr;
+    if (won) {
+        // 胜利：根据关卡和难度使用对应 UI 对话框
+        QDialog *dialog = nullptr;
+        if (level == 1 && difficulty == 1)
+            dialog = new Result1_1Dialog(mainWindow);
+        else if (level == 1 && difficulty == 2)
+            dialog = new Result1_2Dialog(mainWindow);
+        else if (level == 1 && difficulty == 3)
+            dialog = new Result1_3Dialog(mainWindow);
+        else if (level == 2 && difficulty == 1)
+            dialog = new Result2_1Dialog(mainWindow);
+        else if (level == 2 && difficulty == 2)
+            dialog = new Result2_2Dialog(mainWindow);
+        else if (level == 2 && difficulty == 3)
+            dialog = new Result2_3Dialog(mainWindow);
+        else if (level == 3 && difficulty == 1)
+            dialog = new Result3_1Dialog(mainWindow);
+        else if (level == 3 && difficulty == 2)
+            dialog = new Result3_2Dialog(mainWindow);
+        else if (level == 3 && difficulty == 3)
+            dialog = new Result3_3Dialog(mainWindow);
 
-    switch (level) {
-    case 1:
-        switch (difficulty) {
-        case 1: {
-            Result1_1Dialog *d = new Result1_1Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
+        if (dialog) {
+            connect(dialog, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
+            dialog->exec();
+            dialog->deleteLater();
         }
-        case 2: {
-            Result1_2Dialog *d = new Result1_2Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
+    } else {
+        // 失败：使用通用失败对话框
+        if (!gameResultDialog) {
+            gameResultDialog = new GameResultDialog(mainWindow);
+            connect(gameResultDialog, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
         }
-        case 3: {
-            Result1_3Dialog *d = new Result1_3Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        }
-        break;
-    case 2:
-        switch (difficulty) {
-        case 1: {
-            Result2_1Dialog *d = new Result2_1Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        case 2: {
-            Result2_2Dialog *d = new Result2_2Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        case 3: {
-            Result2_3Dialog *d = new Result2_3Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        }
-        break;
-    case 3:
-        switch (difficulty) {
-        case 1: {
-            Result3_1Dialog *d = new Result3_1Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        case 2: {
-            Result3_2Dialog *d = new Result3_2Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        case 3: {
-            Result3_3Dialog *d = new Result3_3Dialog(mainWindow);
-            d->setResult(won);
-            connect(d, SIGNAL(resultSelected(int)), this, SLOT(onGameResult(int)));
-            dlg = d;
-            break;
-        }
-        }
-        break;
-    }
-
-    if (dlg) {
-        dlg->exec();
-        delete dlg;
+        gameResultDialog->setSkipConfirm(false);
+        gameResultDialog->setResult(won, level, difficulty);
+        gameResultDialog->exec();
     }
 }
 

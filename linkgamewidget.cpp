@@ -39,16 +39,16 @@ static const QColor lightColorsTable[] = {
 
 // ===================== 构造 / 析构 =====================
 
-LinkGameWidget::LinkGameWidget(QWidget *parent, int difficulty)
+LinkGameWidget::LinkGameWidget(QWidget *parent, int difficulty, QSize size)
     : QWidget(parent)
     , difficulty(difficulty)
-    , totalPairs(0)
-    , matchedPairs(0)
     , grid(nullptr)
     , colors(nullptr)
+    , totalPairs(0)
+    , matchedPairs(0)
     , m_isBuilding(false)
 {
-    setFixedSize(800, 600);
+    setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
 
     switch (difficulty) {

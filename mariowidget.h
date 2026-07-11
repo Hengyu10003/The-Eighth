@@ -17,7 +17,7 @@ class MarioWidget : public QWidget
     Q_OBJECT
 
 public:
-    MarioWidget(QWidget *parent = 0, int difficulty = 1);
+    MarioWidget(QWidget *parent = 0, int difficulty = 1, QSize size = QSize(800, 600));
     ~MarioWidget();
 
     void setDifficulty(int difficulty);
@@ -83,6 +83,7 @@ private:
     QList<Platform> platforms;
 
     QTimer *gameTimer;
+    bool m_gameOver;   // 防止重复发射 gameWon/gameLost
 };
 
 #endif // MARIOWIDGET_H

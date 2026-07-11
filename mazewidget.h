@@ -12,7 +12,7 @@ class MazeWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit MazeWidget(QWidget *parent = nullptr, int level = 1);
+    explicit MazeWidget(QWidget *parent = nullptr, int level = 1, QSize size = QSize(800, 600));
     ~MazeWidget() override;
 
     void setLevel(int level);

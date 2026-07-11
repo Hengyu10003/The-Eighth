@@ -7,13 +7,11 @@
 #include <algorithm>
 
 LeaderboardDialog::LeaderboardDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::LeaderboardDialog)
+    : QDialog(parent),
+      ui(new Ui::LeaderboardDialog)
 {
     ui->setupUi(this);
 
-    ui->tableWidget->setColumnCount(4);
-    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "排名" << "昵称" << "碎片数" << "完成时间");
     ui->tableWidget->setColumnWidth(0, 60);
     ui->tableWidget->setColumnWidth(1, 150);
     ui->tableWidget->setColumnWidth(2, 120);

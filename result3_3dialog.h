@@ -14,14 +14,12 @@ class Result3_3Dialog : public QDialog
 public:
     Result3_3Dialog(QWidget *parent = 0);
     ~Result3_3Dialog();
-    void setResult(bool won);
 
 signals:
     void resultSelected(int result);
 
 private slots:
     void onNextLevelClicked();
-    void onRetryClicked();
 
 private:
     Ui::Result3_3Dialog *ui;

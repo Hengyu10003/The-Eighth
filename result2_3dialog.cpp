@@ -15,17 +15,6 @@ Result2_3Dialog::~Result2_3Dialog()
     delete ui;
 }
 
-void Result2_3Dialog::setResult(bool won)
-{
-    if (won) {
-        ui->nextLevelBtn->show();
-        ui->backToMenuBtn->hide();
-    } else {
-        ui->nextLevelBtn->hide();
-        ui->backToMenuBtn->show();
-    }
-}
-
 void Result2_3Dialog::onNextLevelClicked()
 {
     emit resultSelected(3);
@@ -35,11 +24,5 @@ void Result2_3Dialog::onNextLevelClicked()
 void Result2_3Dialog::onBackToMenuClicked()
 {
     emit resultSelected(2);
-    accept();
-}
-
-void Result2_3Dialog::onRetryClicked()
-{
-    emit resultSelected(1);
     accept();
 }

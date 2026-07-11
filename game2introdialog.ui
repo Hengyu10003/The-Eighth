@@ -10,6 +10,9 @@
     <height>650</height>
    </rect>
   </property>
+  <property name="windowTitle">
+   <string>游戏2介绍</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">border-image: url(:/images/level2_intro_img.png);</string>
   </property>
