@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QRect>
 #include <QList>
+#include <QPixmap>
 
 #include "config.h"
 
@@ -53,6 +54,19 @@ private:
     bool keyShoot;
     int shootCooldown;
 
+    int m_lastDirectionX;
+    QPixmap m_playerPixmapL[4];
+    QPixmap m_playerPixmapR[4];
+    int m_playerFrame;
+    int m_playerFrameCounter;
+
+    QPixmap m_bulletPixmap[2];
+    int m_bulletFrame;
+    QPixmap m_bossBulletPixmap[3];
+    QPixmap m_bossPixmap[4];
+    int m_bossFrame;
+    int m_bossFrameCounter;
+
     int playerHealth;
     int playerMaxHealth;
     int playerAttack;
@@ -73,7 +87,7 @@ private:
 
     // ★ Boss 子弹（速度带 XY 两个方向）
     struct BossBullet {
-        double x; double y; double vx; double vy; bool active;
+        double x; double y; double vx; double vy; bool active; int tex;
     };
     QList<BossBullet> bossBullets;
     int bossShootTimer;

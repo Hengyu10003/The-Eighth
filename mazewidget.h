@@ -43,11 +43,13 @@ private:
     int exitY;
     bool **maze;
     QTimer *animationTimer;
-    QPixmap m_playerPixmap[4];
+    QPixmap m_playerPixmapR[4];  // 向右动画
+    QPixmap m_playerPixmapL[4];  // 向左动画
     QPixmap m_doorPixmap;
     QPixmap m_wallPixmap;
     QPixmap m_bgPixmap;
     int m_playerFrame;
+    int m_lastDirectionX;  // 1=右, -1=左
 };
 
 #endif // MAZEWIDGET_H

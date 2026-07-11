@@ -84,10 +84,18 @@ private:
     };
     QList<Platform> platforms;
 
+    struct Obstacle {
+        double x; double y; double size; // 正方形
+    };
+    QList<Obstacle> obstacles;
+
     QTimer *gameTimer;
     bool m_gameOver;   // 防止重复发射 gameWon/gameLost
+    bool m_keyLeft;    // A键/左箭头按下
+    bool m_keyRight;   // D键/右箭头按下
     QPixmap m_enemyPixmap;
     QPixmap m_platformPixmap;
+    QPixmap m_obstaclePixmap;
     QPixmap m_playerPixmapL[4];   // 向左移动动画4帧
     QPixmap m_playerPixmapR[4];   // 向右移动动画4帧
     QPixmap m_coinPixmap1;

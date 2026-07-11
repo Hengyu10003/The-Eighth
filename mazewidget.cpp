@@ -40,11 +40,16 @@ MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
     generateMaze();
 
     // 加载玩家动画（向右）
-    m_playerPixmap[0].load(TUAN1_r);
-    m_playerPixmap[1].load(TUAN2_r);
-    m_playerPixmap[2].load(TUAN3_r);
-    m_playerPixmap[3].load(TUAN4_r);
+    m_playerPixmapR[0].load(TUAN1_r);
+    m_playerPixmapR[1].load(TUAN2_r);
+    m_playerPixmapR[2].load(TUAN3_r);
+    m_playerPixmapR[3].load(TUAN4_r);
+    m_playerPixmapL[0].load(TUAN1_l);
+    m_playerPixmapL[1].load(TUAN2_l);
+    m_playerPixmapL[2].load(TUAN3_l);
+    m_playerPixmapL[3].load(TUAN4_l);
     m_playerFrame = 0;
+    m_lastDirectionX = 1;
     m_doorPixmap.load(DOOR);
     m_wallPixmap.load(WALL);
     m_bgPixmap.load(MIGONG);
@@ -180,9 +185,10 @@ void MazeWidget::paintEvent(QPaintEvent *event)
     }
 
     // 玩家
-    if (!m_playerPixmap[m_playerFrame].isNull()) {
+    QPixmap *playerFrames = (m_lastDirectionX >= 0) ? m_playerPixmapR : m_playerPixmapL;
+    if (!playerFrames[m_playerFrame].isNull()) {
         painter.drawPixmap(ox + playerX*cellSize + 2, oy + playerY*cellSize + 2,
-                           cellSize-4, cellSize-4, m_playerPixmap[m_playerFrame]);
+                           cellSize-4, cellSize-4, playerFrames[m_playerFrame]);
     } else {
         painter.fillRect(ox + playerX*cellSize + 2, oy + playerY*cellSize + 2,
                          cellSize-4, cellSize-4, Qt::blue);
@@ -206,8 +212,8 @@ void MazeWidget::keyPressEvent(QKeyEvent *event)
     switch (event->key()) {
     case Qt::Key_W: case Qt::Key_Up:    ny--; break;
     case Qt::Key_S: case Qt::Key_Down:  ny++; break;
-    case Qt::Key_A: case Qt::Key_Left:  nx--; break;
-    case Qt::Key_D: case Qt::Key_Right: nx++; break;
+    case Qt::Key_A: case Qt::Key_Left:  nx--; m_lastDirectionX = -1; break;
+    case Qt::Key_D: case Qt::Key_Right: nx++; m_lastDirectionX = 1; break;
     default:
         QWidget::keyPressEvent(event);
         return;

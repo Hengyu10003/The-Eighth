@@ -23,16 +23,16 @@
    <widget class="QPushButton" name="inputNameBtn">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>140</x>
       <y>260</y>
       <width>200</width>
-      <height>65</height>
+      <height>68</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>200</width>
-      <height>65</height>
+      <height>63</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -45,7 +45,7 @@
    <widget class="QPushButton" name="startGameBtn">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>140</x>
       <y>330</y>
       <width>200</width>
       <height>65</height>
@@ -54,7 +54,7 @@
     <property name="minimumSize">
      <size>
       <width>200</width>
-      <height>65</height>
+      <height>63</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -67,16 +67,16 @@
    <widget class="QPushButton" name="backgroundBtn">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>140</x>
       <y>400</y>
       <width>200</width>
-      <height>65</height>
+      <height>66</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>200</width>
-      <height>65</height>
+      <height>63</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -89,7 +89,7 @@
    <widget class="QPushButton" name="leaderboardBtn">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>140</x>
       <y>470</y>
       <width>200</width>
       <height>65</height>
@@ -98,7 +98,7 @@
     <property name="minimumSize">
      <size>
       <width>200</width>
-      <height>65</height>
+      <height>63</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -111,16 +111,16 @@
    <widget class="QPushButton" name="exitBtn">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>140</x>
       <y>540</y>
       <width>200</width>
-      <height>65</height>
+      <height>63</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>200</width>
-      <height>65</height>
+      <height>63</height>
      </size>
     </property>
     <property name="styleSheet">

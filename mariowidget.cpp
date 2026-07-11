@@ -24,8 +24,8 @@ static bool isKeyDown(Qt::Key qtKey)
 MarioWidget::MarioWidget(QWidget *parent, int difficulty, QSize size)
     : QWidget(parent)
     , difficulty(difficulty)
-    , playerWorldX(0)
-    , playerY(300)
+    , playerWorldX(200)
+    , playerY(GROUND_Y - 51)
     , playerVelocityX(0)
     , playerVelocityY(0)
     , isOnGround(false)
@@ -39,8 +39,11 @@ MarioWidget::MarioWidget(QWidget *parent, int difficulty, QSize size)
     , enemiesKilled(0)
     , cameraX(0)
     , m_gameOver(false)
+    , m_keyLeft(false)
+    , m_keyRight(false)
     , m_enemyPixmap(GUAI)
     , m_platformPixmap(ZHUAN)
+    , m_obstaclePixmap(ZHUAN2)
     , m_coinPixmap1(BI1)
     , m_coinPixmap2(BI2)
     , m_bgPixmap(MARIO_B)
@@ -100,8 +103,8 @@ void MarioWidget::setDifficulty(int difficulty)
 
 void MarioWidget::reset()
 {
-    playerWorldX = 0;
-    playerY = 300;
+    playerWorldX = 200;
+    playerY = GROUND_Y - m_playerHeight;
     playerVelocityX = 0;
     playerVelocityY = 0;
     isOnGround = false;
@@ -115,6 +118,8 @@ void MarioWidget::reset()
     enemiesKilled = 0;
     cameraX = 0;
     m_gameOver = false;
+    m_keyLeft = false;
+    m_keyRight = false;
     initLevel();
 }
 
@@ -123,19 +128,65 @@ void MarioWidget::initLevel()
     coinList.clear();
     enemies.clear();
     platforms.clear();
+    obstacles.clear();
 
-    // 地面
-    platforms.append({0,    GROUND_Y, 500, 50});
-    platforms.append({580,  GROUND_Y, 500, 50});
-    platforms.append({1160, GROUND_Y, 500, 50});
-    platforms.append({1740, GROUND_Y, 500, 50});
-    platforms.append({2320, GROUND_Y, 500, 50});
-    platforms.append({2900, GROUND_Y, 400, 50});
-    platforms.append({3380, GROUND_Y, 400, 50});
-    platforms.append({3800, GROUND_Y, 250, 50});
+    qsrand((uint)QTime::currentTime().msec());
+
+    // ===== 地面平台（动态间隙）=====
+    double baseGap = 80.0;
+    double groundWidths[] = {500, 500, 500, 500, 500, 400, 400, 250};
+    int groundCount = sizeof(groundWidths) / sizeof(groundWidths[0]);
+    double currentX = 0;
+    for (int i = 0; i < groundCount; i++) {
+        platforms.append({currentX, (double)GROUND_Y, groundWidths[i], 50.0});
+
+        // 难度加成间隙方差
+        double gapMult = 1.0;
+        if (difficulty == 2) {
+            gapMult = 1.0 + (qrand() % 301) / 1000.0; // 1.0 ~ 1.3
+        } else if (difficulty == 3) {
+            gapMult = 1.2 + (qrand() % 301) / 1000.0; // 1.2 ~ 1.5
+        }
+        currentX += groundWidths[i] + baseGap * gapMult;
+    }
+
+    // ===== 贴地障碍物（不重叠，大小=玩家1~1.5倍）=====
+    int obstacleCount = (difficulty == 1) ? 2 : (difficulty == 2) ? 5 : 7;
+    int minSize = m_playerWidth;           // 51
+    int maxSize = (int)(m_playerWidth * 1.5); // 76
+    for (int i = 0; i < obstacleCount; i++) {
+        int obsSize = minSize + qrand() % (maxSize - minSize + 1);
+        // 尝试放置，避免重叠
+        bool placed = false;
+        for (int attempt = 0; attempt < 30 && !placed; attempt++) {
+            int pi = qrand() % groundCount;
+            const Platform &p = platforms[pi];
+            double ox = p.x + qrand() % (int)(p.width - obsSize);
+            double oy = p.y - obsSize;
+            QRect newRect(ox, oy, obsSize, obsSize);
+            bool overlaps = false;
+            for (const Obstacle &o : obstacles) {
+                QRect existRect(o.x, o.y, o.size, o.size);
+                if (newRect.intersects(existRect.adjusted(-20, -20, 20, 20))) {
+                    overlaps = true; break;
+                }
+            }
+            if (!overlaps) {
+                obstacles.append({ox, oy, (double)obsSize});
+                placed = true;
+            }
+        }
+        if (!placed) {
+            // 实在放不下就算了
+            int pi = qrand() % groundCount;
+            const Platform &p = platforms[pi];
+            double ox = p.x + qrand() % (int)(p.width - obsSize);
+            double oy = p.y - obsSize;
+            obstacles.append({ox, oy, (double)obsSize});
+        }
+    }
 
     // 高空平台
-    qsrand((uint)QTime::currentTime().msec());
     for (int i = 0; i < 20; i++) {
         double px = 200 + qrand() % (WORLD_WIDTH - 400);
         double py = 250 + qrand() % 200;
@@ -175,18 +226,15 @@ void MarioWidget::movePlayer()
     const double MAX_FALL_SPEED = 15;
     double MOVE_SPEED = 5.0;
 
-    // ===== 用 GetAsyncKeyState 直接读键盘 =====
-    bool keyLeft  = isKeyDown(Qt::Key_A) || isKeyDown(Qt::Key_Left);
-    bool keyRight = isKeyDown(Qt::Key_D) || isKeyDown(Qt::Key_Right);
-
-    if (keyLeft && keyRight) {
+    // ===== 用按键标志（Qt事件驱动，更可靠）=====
+    if (m_keyLeft && m_keyRight) {
         playerVelocityX = lastDirection * MOVE_SPEED;
         facingDirection = lastDirection;
-    } else if (keyLeft) {
+    } else if (m_keyLeft) {
         playerVelocityX = -MOVE_SPEED;
         facingDirection = -1;
         lastDirection = -1;
-    } else if (keyRight) {
+    } else if (m_keyRight) {
         playerVelocityX = MOVE_SPEED;
         facingDirection = 1;
         lastDirection = 1;
@@ -195,7 +243,7 @@ void MarioWidget::movePlayer()
     }
 
     // ===== 重力 =====
-    double prevBottom = playerY + 40;
+    double prevBottom = playerY + m_playerHeight;
     playerVelocityY += GRAVITY;
     if (playerVelocityY > MAX_FALL_SPEED) playerVelocityY = MAX_FALL_SPEED;
 
@@ -207,14 +255,14 @@ void MarioWidget::movePlayer()
     // ===== 平台碰撞 =====
     isOnGround = false;
     for (const Platform &p : platforms) {
-        double centerX = playerWorldX + 15;
-        if (centerX < p.x || centerX > p.x + p.width)
+        // 玩家身体与平台有水平重叠才能站上去
+        if (playerWorldX + m_playerWidth <= p.x || playerWorldX >= p.x + p.width)
             continue;
         if (playerVelocityY >= 0 &&
             prevBottom <= p.y + 15 &&
-            playerY + 40 >= p.y - 5 &&
-            playerY + 40 <= p.y + p.height + 10) {
-            playerY = p.y - 40;
+            playerY + m_playerHeight >= p.y - 5 &&
+            playerY + m_playerHeight <= p.y + p.height + 10) {
+            playerY = p.y - m_playerHeight;
             playerVelocityY = 0;
             isOnGround = true;
             jumpCount = 0;
@@ -230,12 +278,43 @@ void MarioWidget::movePlayer()
         return;
     }
 
+    // ===== 障碍物碰撞 =====
+    QRect playerRect(playerWorldX, playerY, m_playerWidth, m_playerHeight);
+    for (const Obstacle &o : obstacles) {
+        QRect obsRect(o.x, o.y, o.size, o.size);
+
+        // 站在障碍物上面
+        if (playerVelocityY >= 0 &&
+            playerRect.right() > obsRect.left() + 3 && playerRect.left() < obsRect.right() - 3) {
+            double prevBottom = playerY - playerVelocityY + m_playerHeight;
+            if (prevBottom <= o.y + 10 && playerY + m_playerHeight >= o.y - 3 &&
+                playerY + m_playerHeight <= o.y + o.size * 0.5) {
+                playerY = o.y - m_playerHeight;
+                playerVelocityY = 0;
+                isOnGround = true;
+                jumpCount = 0;
+                playerRect = QRect(playerWorldX, playerY, m_playerWidth, m_playerHeight);
+                continue;
+            }
+        }
+
+        // 水平方向阻挡
+        if (playerRect.right() > obsRect.left() && playerRect.left() < obsRect.right() &&
+            playerRect.bottom() > obsRect.top() + 5 && playerRect.top() + m_playerHeight * 0.4 < obsRect.bottom()) {
+            if (playerVelocityX > 0) {
+                playerWorldX = obsRect.left() - m_playerWidth;
+            } else if (playerVelocityX < 0) {
+                playerWorldX = obsRect.right();
+            }
+            playerVelocityX = 0;
+            playerRect = QRect(playerWorldX, playerY, m_playerWidth, m_playerHeight);
+        }
+    }
+
     // ===== 摄像机 =====
     cameraX = playerWorldX - PLAYER_SCREEN_X;
     if (cameraX < 0) cameraX = 0;
     if (cameraX > WORLD_WIDTH - width()) cameraX = WORLD_WIDTH - width();
-
-    QRect playerRect(playerWorldX, playerY, m_playerWidth, m_playerHeight);
 
     // ===== 金币 =====
     for (Coin &c : coinList) {
@@ -249,9 +328,8 @@ void MarioWidget::movePlayer()
         }
     }
 
-    // ===== 攻击状态（用 GetAsyncKeyState 读 J 键）=====
-    bool keyAttackHeld = isKeyDown(Qt::Key_J);
-    if (keyAttack) keyAttackHeld = true;  // 允许 Qt 事件触发一次后保持
+    // ===== 攻击状态 =====
+    bool keyAttackHeld = keyAttack;
 
     // ===== 敌人 =====
     for (Enemy &e : enemies) {
@@ -265,8 +343,8 @@ void MarioWidget::movePlayer()
 
         // 攻击检测
         if (keyAttackHeld) {
-            double dx = (e.x + 15) - (playerWorldX + 15);
-            double dy = (e.y + 15) - (playerY + 20);
+            double dx = (e.x + 15) - (playerWorldX + m_playerWidth / 2.0);
+            double dy = (e.y + 15) - (playerY + m_playerHeight / 2.0);
 
             bool inRange = false;
             if (facingDirection == 1 && dx > 0 && dx < 70) inRange = true;
@@ -288,7 +366,7 @@ void MarioWidget::movePlayer()
 
         // 碰撞检测
         if (checkCollision(playerRect, enemyRect)) {
-            if (playerVelocityY > 0 && playerY + 40 < e.y + 15) {
+            if (playerVelocityY > 0 && playerY + m_playerHeight < e.y + 15) {
                 e.health--;
                 playerVelocityY = -10;
                 if (e.health <= 0) {
@@ -370,6 +448,17 @@ void MarioWidget::paintEvent(QPaintEvent *event)
         }
     }
 
+    // 障碍物
+    for (const Obstacle &o : obstacles) {
+        double sx = o.x - cameraX;
+        if (sx + o.size < -50 || sx > width() + 50) continue;
+        if (!m_obstaclePixmap.isNull()) {
+            painter.drawPixmap(sx, o.y, o.size, o.size, m_obstaclePixmap);
+        } else {
+            painter.fillRect(sx, o.y, o.size, o.size, QColor(139, 69, 19)); // 棕色回退
+        }
+    }
+
     // 玩家动画：根据朝向选择对应帧
     QPixmap currentFrame;
     if (facingDirection == 1) {
@@ -384,12 +473,11 @@ void MarioWidget::paintEvent(QPaintEvent *event)
     }
 
     // 攻击特效（只要按住 J 就显示）
-    bool keyAttackHeld = isKeyDown(Qt::Key_J) || keyAttack;
-    if (keyAttackHeld) {
-        int ax = (facingDirection == 1) ? PLAYER_SCREEN_X + m_playerWidth / 2 : PLAYER_SCREEN_X - 45;
+    if (keyAttack) {
+        int ax = (facingDirection == 1) ? PLAYER_SCREEN_X + m_playerWidth / 2 : PLAYER_SCREEN_X - 60 + m_playerWidth / 2;
         painter.setBrush(QColor(255, 255, 0, 80));
         painter.setPen(Qt::NoPen);
-        painter.drawEllipse(ax, playerY - 15, 60, 60);
+        painter.drawEllipse(ax, playerY + m_playerHeight / 2 - 30, 60, 60);
     }
 
     painter.setPen(Qt::black);
@@ -405,12 +493,19 @@ void MarioWidget::paintEvent(QPaintEvent *event)
         painter.drawText(10, 145, QString::fromUtf8("\xe2\x99\xaa \xe9\x87\x91\xe8\xba\xab: %1 \xe6\xac\xa1").arg(invincibleCount));
 }
 
-// ===================== ★ 按键处理（简化，只处理跳和攻击）=====================
-// 左/右键不再通过 Qt 事件处理，改用 GetAsyncKeyState 直接读键盘
+// ===================== ★ 按键处理 =====================
 
 void MarioWidget::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
+    case Qt::Key_A:
+    case Qt::Key_Left:
+        m_keyLeft = true;
+        break;
+    case Qt::Key_D:
+    case Qt::Key_Right:
+        m_keyRight = true;
+        break;
     case Qt::Key_W:
     case Qt::Key_Up:
     case Qt::Key_Space:
@@ -428,6 +523,14 @@ void MarioWidget::keyPressEvent(QKeyEvent *event)
 void MarioWidget::keyReleaseEvent(QKeyEvent *event)
 {
     switch (event->key()) {
+    case Qt::Key_A:
+    case Qt::Key_Left:
+        m_keyLeft = false;
+        break;
+    case Qt::Key_D:
+    case Qt::Key_Right:
+        m_keyRight = false;
+        break;
     case Qt::Key_J:
         keyAttack = false;
         break;

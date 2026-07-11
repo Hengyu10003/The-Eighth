@@ -65,5 +65,15 @@
         <file>images/migong.png</file>
         <file>images/door.png</file>
         <file>images/line.png</file>
+        <file>images/zhuan2.png</file>
+        <file>images/boss_bi1.png</file>
+        <file>images/boss_bi2.png</file>
+        <file>images/boss_bi3.png</file>
+        <file>images/boss1.png</file>
+        <file>images/boss2.png</file>
+        <file>images/boss3.png</file>
+        <file>images/boss4.png</file>
+        <file>images/tan_bi1.png</file>
+        <file>images/tan_bi2.png</file>
     </qresource>
 </RCC>

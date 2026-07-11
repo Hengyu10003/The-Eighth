@@ -16,6 +16,12 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     , keyDown(false)
     , keyShoot(false)
     , shootCooldown(0)
+    , m_lastDirectionX(1)
+    , m_playerFrame(0)
+    , m_playerFrameCounter(0)
+    , m_bulletFrame(0)
+    , m_bossFrame(0)
+    , m_bossFrameCounter(0)
     , playerHealth(200)
     , playerMaxHealth(200)
     , playerAttack(10)
@@ -31,6 +37,27 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
 
+    m_playerPixmapL[0].load(TUAN1_l);
+    m_playerPixmapL[1].load(TUAN2_l);
+    m_playerPixmapL[2].load(TUAN3_l);
+    m_playerPixmapL[3].load(TUAN4_l);
+    m_playerPixmapR[0].load(TUAN1_r);
+    m_playerPixmapR[1].load(TUAN2_r);
+    m_playerPixmapR[2].load(TUAN3_r);
+    m_playerPixmapR[3].load(TUAN4_r);
+
+    m_bulletPixmap[0].load(TAN_BI1);
+    m_bulletPixmap[1].load(TAN_BI2);
+
+    m_bossBulletPixmap[0].load(BOSS_BI1);
+    m_bossBulletPixmap[1].load(BOSS_BI2);
+    m_bossBulletPixmap[2].load(BOSS_BI3);
+
+    m_bossPixmap[0].load(BOSS1);
+    m_bossPixmap[1].load(BOSS2);
+    m_bossPixmap[2].load(BOSS3);
+    m_bossPixmap[3].load(BOSS4);
+
     switch (difficulty) {
     case 1:
         playerHealth = 200; playerMaxHealth = 200;
@@ -38,14 +65,14 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
         bossAttack = 5;
         break;
     case 2:
-        playerHealth = 150; playerMaxHealth = 150;
-        bossHealth = 150;  bossMaxHealth = 150;
-        bossAttack = 8;
+        playerHealth = 250; playerMaxHealth = 250;
+        bossHealth = 100;  bossMaxHealth = 100;
+        bossAttack = 4;
         break;
     case 3:
-        playerHealth = 100; playerMaxHealth = 100;
-        bossHealth = 200;  bossMaxHealth = 200;
-        bossAttack = 10;
+        playerHealth = 300; playerMaxHealth = 300;
+        bossHealth = 100;  bossMaxHealth = 100;
+        bossAttack = 3;
         break;
     }
 
@@ -75,14 +102,14 @@ void HollowKnightWidget::setDifficulty(int difficulty)
         bossAttack = 5;
         break;
     case 2:
-        playerHealth = 150; playerMaxHealth = 150;
-        bossHealth = 150;  bossMaxHealth = 150;
-        bossAttack = 8;
+        playerHealth = 250; playerMaxHealth = 250;
+        bossHealth = 100;  bossMaxHealth = 100;
+        bossAttack = 4;
         break;
     case 3:
-        playerHealth = 100; playerMaxHealth = 100;
-        bossHealth = 200;  bossMaxHealth = 200;
-        bossAttack = 10;
+        playerHealth = 300; playerMaxHealth = 300;
+        bossHealth = 100;  bossMaxHealth = 100;
+        bossAttack = 3;
         break;
     }
 }
@@ -92,6 +119,9 @@ void HollowKnightWidget::reset()
     playerX = 100; playerY = 300;
     keyLeft = false; keyRight = false; keyUp = false; keyDown = false;
     keyShoot = false; shootCooldown = 0;
+    m_lastDirectionX = 1;
+    m_playerFrame = 0;
+    m_playerFrameCounter = 0;
     bossX = 700; bossY = 250;
     bossMoveTimer = 0; bossShootTimer = 0;
     playerBullets.clear();
@@ -104,14 +134,14 @@ void HollowKnightWidget::reset()
         bossAttack = 5;
         break;
     case 2:
-        playerHealth = 150; playerMaxHealth = 150;
-        bossHealth = 150;  bossMaxHealth = 150;
-        bossAttack = 8;
+        playerHealth = 250; playerMaxHealth = 250;
+        bossHealth = 100;  bossMaxHealth = 100;
+        bossAttack = 4;
         break;
     case 3:
-        playerHealth = 100; playerMaxHealth = 100;
-        bossHealth = 200;  bossMaxHealth = 200;
-        bossAttack = 10;
+        playerHealth = 300; playerMaxHealth = 300;
+        bossHealth = 100;  bossMaxHealth = 100;
+        bossAttack = 3;
         break;
     }
 }
@@ -141,9 +171,9 @@ void HollowKnightWidget::movePlayer()
 
     // 边界
     if (playerX < 0) playerX = 0;
-    if (playerX > width() - 30) playerX = width() - 30;
+    if (playerX > width() - 60) playerX = width() - 60;
     if (playerY < 0) playerY = 0;
-    if (playerY > height() - 30) playerY = height() - 30;
+    if (playerY > height() - 60) playerY = height() - 60;
 
     // ===== ★ 根据按键确定射击方向 =====
     if (keyShoot && shootCooldown <= 0) {
@@ -171,8 +201,8 @@ void HollowKnightWidget::movePlayer()
         b.x += b.vx;
         b.y += b.vy;
 
-        QRect bulletRect((int)b.x, (int)b.y, 12, 12);
-        QRect bossRect(bossX, bossY, 50, 50);
+        QRect bulletRect((int)b.x, (int)b.y, 30, 30);
+        QRect bossRect(bossX, bossY, 110, 110);
 
         if (checkCollision(bulletRect, bossRect)) {
             b.active = false;
@@ -192,8 +222,8 @@ void HollowKnightWidget::movePlayer()
 void HollowKnightWidget::spawnPlayerBullet(double vx, double vy)
 {
     PlayerBullet b;
-    b.x = playerX + 15;
-    b.y = playerY + 15;
+    b.x = playerX + 30;
+    b.y = playerY + 30;
     b.vx = vx;
     b.vy = vy;
     b.active = true;
@@ -204,9 +234,11 @@ void HollowKnightWidget::spawnPlayerBullet(double vx, double vy)
 
 void HollowKnightWidget::updateBoss()
 {
+    double speedMult = (difficulty == 1) ? 1.0 : (difficulty == 2) ? 0.9 : 0.8;
+
     // Boss 左右移动
     bossMoveTimer++;
-    bossX += qSin(bossMoveTimer * 0.03) * 3;  // 正弦左右摆动
+    bossX += qSin(bossMoveTimer * 0.03) * 3 * speedMult;
 
     // 边界
     if (bossX < 50) bossX = 50;
@@ -224,13 +256,13 @@ void HollowKnightWidget::updateBoss()
     }
 
     // Boss 子弹移动 + 碰撞
-    QRect playerRect(playerX, playerY, 30, 30);
+    QRect playerRect(playerX, playerY, 60, 60);
     for (BossBullet &b : bossBullets) {
         if (!b.active) continue;
         b.x += b.vx;
         b.y += b.vy;
 
-        QRect bulletRect((int)b.x, (int)b.y, 15, 15);
+        QRect bulletRect((int)b.x, (int)b.y, 18, 18);
         if (checkCollision(playerRect, bulletRect)) {
             b.active = false;
             playerHealth -= bossAttack;
@@ -270,6 +302,7 @@ void HollowKnightWidget::spawnBossBullet()
         b.vx = std::cos(angle) * speed;
         b.vy = std::sin(angle) * speed;
         b.active = true;
+        b.tex = qrand() % 3;
         bossBullets.append(b);
     }
 }
@@ -282,22 +315,47 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.fillRect(rect(), Qt::black);
 
-    // 玩家
-    painter.fillRect(playerX, playerY, 30, 30, Qt::blue);
-
-    // Boss
-    painter.fillRect(bossX, bossY, 50, 50, Qt::darkRed);
-
-    // 玩家子弹
-    for (const PlayerBullet &b : playerBullets) {
-        if (b.active)
-            painter.fillRect((int)b.x, (int)b.y, 12, 12, Qt::cyan);
+    // 玩家：根据朝向选择动画帧
+    QPixmap currentFrame;
+    if (m_lastDirectionX == -1) {
+        currentFrame = m_playerPixmapL[m_playerFrame];
+    } else {
+        currentFrame = m_playerPixmapR[m_playerFrame];
+    }
+    if (!currentFrame.isNull()) {
+        painter.drawPixmap(playerX, playerY, 60, 60, currentFrame);
+    } else {
+        painter.fillRect(playerX, playerY, 60, 60, Qt::blue);
     }
 
-    // Boss 子弹
+    // Boss (2倍 110×110，循环动画)
+    QPixmap bossTex = m_bossPixmap[m_bossFrame];
+    if (!bossTex.isNull()) {
+        painter.drawPixmap(bossX, bossY, 110, 110, bossTex);
+    } else {
+        painter.fillRect(bossX, bossY, 110, 110, Qt::darkRed);
+    }
+
+    // 玩家子弹 (2.5倍大小 30×30)
+    QPixmap bulletFrame = m_bulletPixmap[m_bulletFrame];
+    for (const PlayerBullet &b : playerBullets) {
+        if (b.active) {
+            if (!bulletFrame.isNull())
+                painter.drawPixmap((int)b.x, (int)b.y, 30, 30, bulletFrame);
+            else
+                painter.fillRect((int)b.x, (int)b.y, 30, 30, Qt::cyan);
+        }
+    }
+
+    // Boss 子弹 (0.6倍 18×18，随机贴图)
     for (const BossBullet &b : bossBullets) {
-        if (b.active)
-            painter.fillRect((int)b.x, (int)b.y, 15, 15, Qt::darkYellow);
+        if (b.active) {
+            QPixmap tex = m_bossBulletPixmap[b.tex];
+            if (!tex.isNull())
+                painter.drawPixmap((int)b.x, (int)b.y, 18, 18, tex);
+            else
+                painter.fillRect((int)b.x, (int)b.y, 18, 18, Qt::darkYellow);
+        }
     }
 
     // ★ Boss 血条（顶部中间，红色）
@@ -332,9 +390,9 @@ void HollowKnightWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_S:
     case Qt::Key_Down:      keyDown = true; break;
     case Qt::Key_A:
-    case Qt::Key_Left:      keyLeft = true; break;
+    case Qt::Key_Left:      keyLeft = true; m_lastDirectionX = -1; break;
     case Qt::Key_D:
-    case Qt::Key_Right:     keyRight = true; break;
+    case Qt::Key_Right:     keyRight = true; m_lastDirectionX = 1; break;
     case Qt::Key_J:
     case Qt::Key_Space:     keyShoot = true; break;
     }
@@ -358,6 +416,26 @@ void HollowKnightWidget::keyReleaseEvent(QKeyEvent *event)
 
 void HollowKnightWidget::updateGame()
 {
+    // 玩家走路动画：移动时每0.15秒切换帧（3个50ms周期）
+    if (keyLeft || keyRight) {
+        m_playerFrameCounter++;
+        if (m_playerFrameCounter >= 3) {
+            m_playerFrameCounter = 0;
+            m_playerFrame = (m_playerFrame + 1) % 4;
+        }
+    } else {
+        m_playerFrame = 0;
+        m_playerFrameCounter = 0;
+    }
+
+    m_bulletFrame = (m_bulletFrame + 1) % 2;
+
+    m_bossFrameCounter++;
+    if (m_bossFrameCounter >= 6) {
+        m_bossFrameCounter = 0;
+        m_bossFrame = (m_bossFrame + 1) % 4;
+    }
+
     movePlayer();
     updateBoss();
     update();

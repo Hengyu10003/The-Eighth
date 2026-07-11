@@ -46,8 +46,25 @@
 #define GUAI ":/images/guai1.png"
 //砖
 #define ZHUAN ":/images/zhuan.png"
+#define ZHUAN2 ":/images/zhuan2.png"
 //金币
 #define BI1 ":/images/bi1.png"
 #define BI2 ":/images/bi2.png"
+
+//鬼神
+//BOSS
+#define BOSS1 ":/images/boss1.png"
+#define BOSS2 ":/images/boss2.png"
+#define BOSS3 ":/images/boss3.png"
+#define BOSS4 ":/images/boss4.png"
+//boss子弹
+#define BOSS_BI1 ":/images/boss_bi1.png"
+#define BOSS_BI2 ":/images/boss_bi2.png"
+#define BOSS_BI3 ":/images/boss_bi3.png"
+//玩家子弹
+#define TAN_BI1 ":/images/tan_bi1.png"
+#define TAN_BI2 ":/images/tan_bi2.png"
+
+
 
 #endif // CONFIG_H
