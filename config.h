@@ -1,6 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+//外部二进制rcc资源文件路径
+#define GAME_RES_PATH "./res.rcc"
+
 //开始游戏界面------------------------------------------------------------------------------------------------------------------------------
 //背景
 #define STARTGAME_BACKGROUND1  ":/images/background1.png"
@@ -13,9 +16,6 @@
 #define STARTGAME_BACKGROUND_BUTTON ":/images/background1.png"
 #define STARTGAME_LABEL_BUTTON     ":/images/background2.png"
 #define STARTGAME_EXIT_BUTTON      ":/images/background5.png"
-
-// 新增：外部二进制rcc资源文件路径
-#define GAME_RES_PATH "./res.rcc"
 
 //迷宫-----------------------------------------------------------------------------------------------------------------------------
 //出口

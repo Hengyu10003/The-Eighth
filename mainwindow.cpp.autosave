@@ -36,10 +36,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);//加载mainwindow.ui的界面布局（直接在mainwindow界面上进行绘制）
 
-    gameTimer = new QTimer(this);
-    connect(gameTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
+    gameTimer = new QTimer(this);//创建游戏定时器（完成时间）
+    connect(gameTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));//游戏时间更新
 
-    gameController = new GameController(this);
+    gameController = new GameController(this);//创建游戏流程控制器
 
     // 加载4张背景图
     bgPixmap[0].load(STARTGAME_BACKGROUND1);
@@ -48,11 +48,11 @@ MainWindow::MainWindow(QWidget *parent) :
     bgPixmap[3].load(STARTGAME_BACKGROUND4);
 
     // 背景动画定时器
-    bgAnimTimer = new QTimer(this);
-    connect(bgAnimTimer, SIGNAL(timeout()), this, SLOT(updateBgFrame()));
-    bgAnimTimer->start(450);
+    bgAnimTimer = new QTimer(this);//背景动画定时器
+    connect(bgAnimTimer, SIGNAL(timeout()), this, SLOT(updateBgFrame()));//背景动画时间更新
+    bgAnimTimer->start(450);//每450ms/0.45s发射一次timeout信号？？？？？？？？？
 
-    // 连接 UI 文件中的按钮
+    // 连接 UI 文件中的按钮（按钮，信号，本类，槽函数）
     connect(ui->inputNameBtn, SIGNAL(clicked()), this, SLOT(onInputNameClicked()));
     connect(ui->startGameBtn, SIGNAL(clicked()), this, SLOT(onStartGameClicked()));
     connect(ui->backgroundBtn, SIGNAL(clicked()), this, SLOT(onBackgroundClicked()));
@@ -60,46 +60,49 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->exitBtn, SIGNAL(clicked()), this, SLOT(onExitClicked()));
 
     // 背景音乐
-    bgMusic = new QSoundEffect(this);
-    bgMusic->setSource(QUrl("qrc" BACK_MUSIC));
-    bgMusic->setLoopCount(QSoundEffect::Infinite);
-    bgMusic->setVolume(0.5f);
-    bgMusic->play();
+    bgMusic = new QSoundEffect(this);//创建背景音乐播放器
+    bgMusic->setSource(QUrl("qrc" BACK_MUSIC));//设置背景音乐的文件路径
+    bgMusic->setLoopCount(QSoundEffect::Infinite);//设置循环次数：无限次
+    bgMusic->setVolume(0.5f);//设置音量
+    bgMusic->play();//开始播放
 
     // 按钮音效
-    m_buttonSound = new QSoundEffect(this);
-    m_buttonSound->setSource(QUrl("qrc" BUTTON));
-    m_buttonSound->setVolume(0.7f);
+    m_buttonSound = new QSoundEffect(this);//创建按钮音效播放器
+    m_buttonSound->setSource(QUrl("qrc" BUTTON));//设置按钮音效路径
+    m_buttonSound->setVolume(0.7f);//设置音效
 
     // 全局事件过滤：监听所有按钮点击
-    qApp->installEventFilter(this);
+    qApp->installEventFilter(this);//？？？？？？？？？
 
-    showMainMenu();
+    showMainMenu();//显示主菜单界面
 }
 
 MainWindow::~MainWindow()
 {
-    delete gameController;
+    delete gameController;//删除游戏流程控制器？？？？？（？？？为什么只删除这些？？？？？？）
     delete gameTimer;
     delete bgAnimTimer;
     delete ui;
 }
 
+//重绘事件：把当前帧背景图画到窗口上
 void MainWindow::paintEvent(QPaintEvent *event)
 {
-    QMainWindow::paintEvent(event);
-    QPainter painter(this);
-    if (!bgPixmap[bgFrame].isNull()) {
-        painter.drawPixmap(rect(), bgPixmap[bgFrame]);
+    QMainWindow::paintEvent(event);              // 父类先画
+    QPainter painter(this);                      // 创建画笔，画布是this
+    if (!bgPixmap[bgFrame].isNull()) {           // 图片加载成功才画
+        painter.drawPixmap(rect(), bgPixmap[bgFrame]); //（绘制范围：整个窗口矩形，要画的图片）
     }
 }
 
+//背景帧切换
 void MainWindow::updateBgFrame()
 {
     bgFrame = (bgFrame + 1) % 4;
-    update();
+    update();//?????????????????????
 }
 
+//统一游戏界面尺寸
 QSize MainWindow::gameSize() const
 {
     return !bgPixmap[0].isNull() ? bgPixmap[0].size() : QSize(800, 600);
