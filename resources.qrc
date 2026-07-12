@@ -75,5 +75,9 @@
         <file>images/boss4.png</file>
         <file>images/tan_bi1.png</file>
         <file>images/tan_bi2.png</file>
+        <file>images/final.png</file>
+        <file>images/final_button.png</file>
+        <file>music/background.wav</file>
+        <file>music/button.wav</file>
     </qresource>
 </RCC>

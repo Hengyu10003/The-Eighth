@@ -32,6 +32,7 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     , bossAttack(5)
     , bossMoveTimer(0)
     , bossShootTimer(0)
+    , m_paused(false)
 {
     setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
@@ -368,7 +369,7 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     f.setPointSize(11);
     f.setBold(true);
     painter.setFont(f);
-    painter.drawText(width() / 2 - 140, 37, QString("BOSS: %1/%2").arg(bossHealth).arg(bossMaxHealth));
+    painter.drawText(width() / 2 - 140, 37, QString("BOSS:").arg(bossHealth).arg(bossMaxHealth));
 
     // ★ 玩家血条（在 Boss 血条正下方，绿色）
     int playerBarWidth = (playerHealth * 200) / playerMaxHealth;
@@ -377,13 +378,39 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     painter.fillRect(width() / 2 - 100, 55, playerBarWidth, 20, Qt::green);
     painter.setPen(Qt::white);
     painter.setFont(f);
-    painter.drawText(width() / 2 - 90, 70, QString("HP: %1/%2").arg(playerHealth).arg(playerMaxHealth));
+    painter.drawText(width() / 2 - 90, 70, QString("HP: ").arg(playerHealth).arg(playerMaxHealth));
+
+    // 暂停遮罩
+    if (m_paused) {
+        painter.fillRect(rect(), QColor(0, 0, 0, 160));
+        painter.setPen(Qt::white);
+        QFont f = painter.font();
+        f.setPointSize(36);
+        f.setBold(true);
+        painter.setFont(f);
+        painter.drawText(rect(), Qt::AlignCenter, "已暂停\n按 ESC 继续");
+    }
 }
 
 // ===================== 按键 =====================
 
 void HollowKnightWidget::keyPressEvent(QKeyEvent *event)
 {
+    // ESC 暂停/继续
+    if (event->key() == Qt::Key_Escape) {
+        m_paused = !m_paused;
+        if (m_paused) {
+            gameTimer->stop();
+        } else {
+            gameTimer->start(50);
+        }
+        emit gamePaused(m_paused);
+        update();
+        return;
+    }
+
+    if (m_paused) return;
+
     switch (event->key()) {
     case Qt::Key_W:
     case Qt::Key_Up:        keyUp = true; break;

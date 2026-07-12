@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-//开始游戏界面
+//开始游戏界面------------------------------------------------------------------------------------------------------------------------------
 //背景
 #define STARTGAME_BACKGROUND1  ":/images/background1.png"
 #define STARTGAME_BACKGROUND2  ":/images/background2.png"
@@ -17,7 +17,7 @@
 // 新增：外部二进制rcc资源文件路径
 #define GAME_RES_PATH "./res.rcc"
 
-//迷宫
+//迷宫-----------------------------------------------------------------------------------------------------------------------------
 //出口
 #define DOOR ":/images/door.png"
 //墙
@@ -25,10 +25,10 @@
 //背景
 #define MIGONG ":/images/migong.png"
 
-//红绸织梦————数字连线
+//红绸织梦————数字连线---------------------------------------------------------------------------------------
 #define LINE ":/images/line.png"
 
-//逃离梦魇————超级马里奥
+//逃离梦魇————超级马里奥------------------------------------------------------------------------------------------------------------
 //背景
 #define MARIO_B ":/images/mario_background.png"
 //玩家
@@ -51,7 +51,7 @@
 #define BI1 ":/images/bi1.png"
 #define BI2 ":/images/bi2.png"
 
-//鬼神
+//鬼神--------------------------------------------------------------------------------------------------------------------------------------
 //BOSS
 #define BOSS1 ":/images/boss1.png"
 #define BOSS2 ":/images/boss2.png"
@@ -65,6 +65,10 @@
 #define TAN_BI1 ":/images/tan_bi1.png"
 #define TAN_BI2 ":/images/tan_bi2.png"
 
-
+//音频=====================================
+//背景音乐
+#define BACK_MUSIC ":/music/background.wav"
+//按钮音效
+#define BUTTON ":/music/button.wav"
 
 #endif // CONFIG_H

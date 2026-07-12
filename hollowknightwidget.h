@@ -25,6 +25,7 @@ signals:
     void gameWon();
     void gameLost();
     void returnToMenu();
+    void gamePaused(bool paused);
 
 protected:
     void paintEvent(QPaintEvent *event);
@@ -93,6 +94,7 @@ private:
     int bossShootTimer;
 
     QTimer *gameTimer;
+    bool m_paused;
 };
 
 #endif // HOLLOWKNIGHTWIDGET_H

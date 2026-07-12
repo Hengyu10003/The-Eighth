@@ -49,6 +49,7 @@ LinkGameWidget::LinkGameWidget(QWidget *parent, int difficulty, QSize size)
     , matchedPairs(0)
     , m_isBuilding(false)
     , m_bgPixmap(LINE)
+    , m_paused(false)
 {
     setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
@@ -324,6 +325,7 @@ int LinkGameWidget::getPairIndex(const QPoint &cell) const
 
 void LinkGameWidget::mousePressEvent(QMouseEvent *event)
 {
+    if (m_paused) return;
     QPoint cell = cellAtPos(event->pos());
     if (cell.x() < 0) return;
 
@@ -331,6 +333,15 @@ void LinkGameWidget::mousePressEvent(QMouseEvent *event)
         handleLeftClick(cell);
     else if (event->button() == Qt::RightButton)
         handleRightClick();
+}
+
+void LinkGameWidget::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape) {
+        m_paused = !m_paused;
+        emit gamePaused(m_paused);
+        update();
+    }
 }
 
 void LinkGameWidget::handleLeftClick(const QPoint &cell)
@@ -610,5 +621,16 @@ void LinkGameWidget::paintEvent(QPaintEvent *event)
         painter.setPen(QPen(QColor(241, 196, 15), 3));
         painter.drawRoundedRect(
             cellRect(m_buildStart.y(), m_buildStart.x()).adjusted(2, 2, -2, -2), 4, 4);
+    }
+
+    // 暂停遮罩
+    if (m_paused) {
+        painter.fillRect(rect(), QColor(0, 0, 0, 160));
+        painter.setPen(Qt::white);
+        QFont f = painter.font();
+        f.setPointSize(36);
+        f.setBold(true);
+        painter.setFont(f);
+        painter.drawText(rect(), Qt::AlignCenter, "已暂停\n按 ESC 继续");
     }
 }

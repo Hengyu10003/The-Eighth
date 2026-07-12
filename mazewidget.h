@@ -5,6 +5,8 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QPixmap>
+#include <QVector>
+#include <QPair>
 
 #include "config.h"
 
@@ -21,9 +23,12 @@ public:
 signals:
     void mazeCompleted();
     void returnToMenu();
+    void gamePaused(bool paused);
 
 private slots:
     void animatePlayer();
+    void onAutoPath();
+    void autoStep();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -50,6 +55,11 @@ private:
     QPixmap m_bgPixmap;
     int m_playerFrame;
     int m_lastDirectionX;  // 1=右, -1=左
+    QTimer *m_autoPathTimer;
+    QVector<QPair<int,int>> m_autoPath;
+    int m_autoPathIndex;
+    bool m_paused;
+    bool m_autoPathWasRunning;  // 记录自动寻路是否在运行
 };
 
 #endif // MAZEWIDGET_H

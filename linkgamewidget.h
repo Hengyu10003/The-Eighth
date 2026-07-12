@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QTimer>
 #include <QColor>
 #include <QPoint>
@@ -27,10 +28,12 @@ signals:
     void gameWon();
     void gameLost();
     void returnToMenu();
+    void gamePaused(bool paused);
 
 protected:
     void paintEvent(QPaintEvent *event);
     void mousePressEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 
 private:
     struct PairInfo {
@@ -77,6 +80,7 @@ private:
     QVector<PairInfo> m_pairs;
     QVector<int> m_connectionHistory;
     QPixmap m_bgPixmap;
+    bool m_paused;
 };
 
 #endif // LINKGAMEWIDGET_H

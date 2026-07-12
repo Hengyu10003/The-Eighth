@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QPushButton>
+#include <QQueue>
 
 MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
     : QWidget(parent)
@@ -61,7 +62,7 @@ MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
     // 关键修复：打开时自动获取焦点，保证按键立刻能用
     setFocus();
 
-    // 返回主菜单按钮 (1150, 0 位置)
+    // 返回主菜单按钮
     QPushButton *backBtn = new QPushButton(this);
     backBtn->setGeometry(1050, 0, 100, 60);
     backBtn->setText("返回");
@@ -69,6 +70,22 @@ MazeWidget::MazeWidget(QWidget *parent, int level, QSize size)
                            "QPushButton:hover { background: rgba(255,255,255,100); }");
     backBtn->setFocusPolicy(Qt::NoFocus);
     connect(backBtn, SIGNAL(clicked()), this, SIGNAL(returnToMenu()));
+
+    // 自动寻路按钮
+    QPushButton *autoBtn = new QPushButton(this);
+    autoBtn->setGeometry(1050, 65, 100, 60);
+    autoBtn->setText("自动");
+    autoBtn->setStyleSheet("QPushButton { border-image: url(" WALL "); color: black; font-weight: bold; }"
+                           "QPushButton:hover { background: rgba(255,255,255,100); }");
+    autoBtn->setFocusPolicy(Qt::NoFocus);
+    connect(autoBtn, SIGNAL(clicked()), this, SLOT(onAutoPath()));
+
+    // 自动寻路定时器
+    m_autoPathTimer = new QTimer(this);
+    connect(m_autoPathTimer, SIGNAL(timeout()), this, SLOT(autoStep()));
+    m_autoPathIndex = 0;
+    m_paused = false;
+    m_autoPathWasRunning = false;
 }
 
 MazeWidget::~MazeWidget()
@@ -203,10 +220,39 @@ void MazeWidget::paintEvent(QPaintEvent *event)
         painter.fillRect(ox + exitX*cellSize + 2, oy + exitY*cellSize + 2,
                          doorW, doorH, Qt::green);
     }
+
+    // 暂停遮罩
+    if (m_paused) {
+        painter.fillRect(rect(), QColor(0, 0, 0, 160));
+        painter.setPen(Qt::white);
+        QFont f = painter.font();
+        f.setPointSize(36);
+        f.setBold(true);
+        painter.setFont(f);
+        painter.drawText(rect(), Qt::AlignCenter, "已暂停\n按 ESC 继续");
+    }
 }
 
 void MazeWidget::keyPressEvent(QKeyEvent *event)
 {
+    // ESC 暂停/继续
+    if (event->key() == Qt::Key_Escape) {
+        m_paused = !m_paused;
+        if (m_paused) {
+            animationTimer->stop();
+            m_autoPathWasRunning = m_autoPathTimer->isActive();
+            m_autoPathTimer->stop();
+        } else {
+            animationTimer->start(150);
+            if (m_autoPathWasRunning) m_autoPathTimer->start(50);
+        }
+        emit gamePaused(m_paused);
+        update();
+        return;
+    }
+
+    if (m_paused) return;  // 暂停时忽略移动
+
     int nx = playerX, ny = playerY;
 
     switch (event->key()) {
@@ -234,4 +280,85 @@ void MazeWidget::animatePlayer()
 {
     m_playerFrame = (m_playerFrame + 1) % 4;
     update();
+}
+
+void MazeWidget::onAutoPath()
+{
+    // 停止之前的自动寻路
+    m_autoPathTimer->stop();
+    m_autoPath.clear();
+    m_autoPathIndex = 0;
+
+    // BFS 寻路
+    QVector<QVector<bool>> visited(mazeHeight, QVector<bool>(mazeWidth, false));
+    QVector<QVector<QPair<int,int>>> parent(mazeHeight, QVector<QPair<int,int>>(mazeWidth, {-1,-1}));
+
+    QQueue<QPair<int,int>> q;
+    q.enqueue({playerX, playerY});
+    visited[playerY][playerX] = true;
+
+    int dx[] = {0, 0, -1, 1};
+    int dy[] = {-1, 1, 0, 0};
+    bool found = false;
+
+    while (!q.isEmpty()) {
+        auto cur = q.dequeue();
+        int cx = cur.first, cy = cur.second;
+        if (cx == exitX && cy == exitY) {
+            found = true;
+            break;
+        }
+        for (int i = 0; i < 4; i++) {
+            int nx = cx + dx[i], ny = cy + dy[i];
+            if (isValidMove(nx, ny) && !visited[ny][nx]) {
+                visited[ny][nx] = true;
+                parent[ny][nx] = cur;
+                q.enqueue({nx, ny});
+            }
+        }
+    }
+
+    if (!found) return;
+
+    // 从出口回溯到起点
+    QVector<QPair<int,int>> path;
+    int sx = exitX, sy = exitY;
+    while (!(sx == playerX && sy == playerY)) {
+        path.prepend({sx, sy});
+        auto p = parent[sy][sx];
+        sx = p.first;
+        sy = p.second;
+        if (sx == -1) break;
+    }
+    m_autoPath = path;
+    m_autoPathIndex = 0;
+
+    // 开始自动行走
+    m_autoPathTimer->start(50);
+}
+
+void MazeWidget::autoStep()
+{
+    if (m_autoPathIndex >= m_autoPath.size()) {
+        m_autoPathTimer->stop();
+        return;
+    }
+
+    auto next = m_autoPath[m_autoPathIndex];
+    int nx = next.first, ny = next.second;
+
+    // 更新朝向
+    if (nx > playerX) m_lastDirectionX = 1;
+    else if (nx < playerX) m_lastDirectionX = -1;
+
+    playerX = nx;
+    playerY = ny;
+    m_autoPathIndex++;
+    update();
+
+    // 到达出口
+    if (playerX == exitX && playerY == exitY) {
+        m_autoPathTimer->stop();
+        emit mazeCompleted();
+    }
 }

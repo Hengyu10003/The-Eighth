@@ -53,6 +53,7 @@ MarioWidget::MarioWidget(QWidget *parent, int difficulty, QSize size)
     , m_coinFrameCounter(0)
     , m_playerFrame(0)
     , m_playerFrameCounter(0)
+    , m_paused(false)
 {
     setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
@@ -224,7 +225,7 @@ void MarioWidget::movePlayer()
 {
     const double GRAVITY = 0.8;
     const double MAX_FALL_SPEED = 15;
-    double MOVE_SPEED = 5.0;
+    double MOVE_SPEED = (difficulty == 1) ? 5.0 : (difficulty == 2) ? 6.5 : 8.0;
 
     // ===== 用按键标志（Qt事件驱动，更可靠）=====
     if (m_keyLeft && m_keyRight) {
@@ -491,12 +492,38 @@ void MarioWidget::paintEvent(QPaintEvent *event)
     painter.drawText(10, 105, QString::fromUtf8("\xe6\x95\x8c\xe4\xba\xba: %1").arg(enemiesKilled));
     if (invincibleCount > 0)
         painter.drawText(10, 145, QString::fromUtf8("\xe2\x99\xaa \xe9\x87\x91\xe8\xba\xab: %1 \xe6\xac\xa1").arg(invincibleCount));
+
+    // 暂停遮罩
+    if (m_paused) {
+        painter.fillRect(rect(), QColor(0, 0, 0, 160));
+        painter.setPen(Qt::white);
+        QFont f = painter.font();
+        f.setPointSize(36);
+        f.setBold(true);
+        painter.setFont(f);
+        painter.drawText(rect(), Qt::AlignCenter, "已暂停\n按 ESC 继续");
+    }
 }
 
 // ===================== ★ 按键处理 =====================
 
 void MarioWidget::keyPressEvent(QKeyEvent *event)
 {
+    // ESC 暂停/继续
+    if (event->key() == Qt::Key_Escape) {
+        m_paused = !m_paused;
+        if (m_paused) {
+            gameTimer->stop();
+        } else {
+            gameTimer->start(30);
+        }
+        emit gamePaused(m_paused);
+        update();
+        return;
+    }
+
+    if (m_paused) return;
+
     switch (event->key()) {
     case Qt::Key_A:
     case Qt::Key_Left:

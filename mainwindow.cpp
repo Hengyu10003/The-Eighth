@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QApplication>
 #include <QPainter>
+#include <QAbstractButton>
 #include "gamecontroller.h"
 #include "config.h"
 #include "mazewidget.h"
@@ -52,6 +53,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->backgroundBtn, SIGNAL(clicked()), this, SLOT(onBackgroundClicked()));
     connect(ui->leaderboardBtn, SIGNAL(clicked()), this, SLOT(onLeaderboardClicked()));
     connect(ui->exitBtn, SIGNAL(clicked()), this, SLOT(onExitClicked()));
+
+    // 背景音乐
+    bgMusic = new QSoundEffect(this);
+    bgMusic->setSource(QUrl("qrc" BACK_MUSIC));
+    bgMusic->setLoopCount(QSoundEffect::Infinite);
+    bgMusic->setVolume(0.5f);
+    bgMusic->play();
+
+    // 按钮音效
+    m_buttonSound = new QSoundEffect(this);
+    m_buttonSound->setSource(QUrl("qrc" BUTTON));
+    m_buttonSound->setVolume(0.7f);
+
+    // 全局事件过滤：监听所有按钮点击
+    qApp->installEventFilter(this);
 
     showMainMenu();
 }
@@ -122,6 +138,7 @@ void MainWindow::showMaze(int level)
 
     connect(mazeWidget, SIGNAL(mazeCompleted()), gameController, SLOT(onMazeCompleted()));
     connect(mazeWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
+    connect(mazeWidget, SIGNAL(gamePaused(bool)), this, SLOT(onGamePaused(bool)));
 }
 
 void MainWindow::showLinkGame(int difficulty)
@@ -145,6 +162,7 @@ void MainWindow::showLinkGame(int difficulty)
     connect(linkGameWidget, SIGNAL(gameWon()), gameController, SLOT(onLinkGameWon()));
     connect(linkGameWidget, SIGNAL(gameLost()), gameController, SLOT(onLinkGameLost()));
     connect(linkGameWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
+    connect(linkGameWidget, SIGNAL(gamePaused(bool)), this, SLOT(onGamePaused(bool)));
 
     this->activateWindow();
     linkGameWidget->setFocus();
@@ -172,6 +190,7 @@ void MainWindow::showMarioGame(int difficulty)
     connect(marioWidget, SIGNAL(gameWon()), gameController, SLOT(onMarioGameWon()));
     connect(marioWidget, SIGNAL(gameLost()), gameController, SLOT(onMarioGameLost()));
     connect(marioWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
+    connect(marioWidget, SIGNAL(gamePaused(bool)), this, SLOT(onGamePaused(bool)));
 
     this->activateWindow();
     marioWidget->setFocus();
@@ -199,6 +218,7 @@ void MainWindow::showHollowKnightGame(int difficulty)
     connect(hollowKnightWidget, SIGNAL(gameWon()), gameController, SLOT(onHollowKnightWon()));
     connect(hollowKnightWidget, SIGNAL(gameLost()), gameController, SLOT(onHollowKnightLost()));
     connect(hollowKnightWidget, SIGNAL(returnToMenu()), this, SLOT(showMainMenu()));
+    connect(hollowKnightWidget, SIGNAL(gamePaused(bool)), this, SLOT(onGamePaused(bool)));
 
     this->activateWindow();
     hollowKnightWidget->setFocus();
@@ -218,6 +238,14 @@ void MainWindow::startGameTimer()
 void MainWindow::stopGameTimer()
 {
     gameTimer->stop();
+}
+
+void MainWindow::onGamePaused(bool paused)
+{
+    if (paused)
+        stopGameTimer();
+    else
+        startGameTimer();
 }
 
 int MainWindow::getGameTime() const
@@ -315,4 +343,14 @@ void MainWindow::onLeaderboardClicked()
 void MainWindow::onExitClicked()
 {
     qApp->exit();
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::MouseButtonPress) {
+        if (qobject_cast<QAbstractButton*>(obj)) {
+            m_buttonSound->play();
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
 }

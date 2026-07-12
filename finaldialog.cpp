@@ -16,7 +16,7 @@ FinalDialog::~FinalDialog()
 
 void FinalDialog::setResult(const QString &text)
 {
-    ui->textBrowser->setText(text);
+//    ui->textBrowser->setText(text);
 }
 
 void FinalDialog::onBackToMenuClicked()

@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QPixmap>
 #include <QTimer>
+#include <QSoundEffect>
 
 class GameController;
 class MazeWidget;
@@ -59,9 +60,11 @@ private slots:
     void onExitClicked();
     void updateTimer();
     void updateBgFrame();
+    void onGamePaused(bool paused);
 
 protected:
     void paintEvent(QPaintEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     Ui::MainWindow *ui;
@@ -72,6 +75,8 @@ private:
     QTimer *bgAnimTimer;
 
     QTimer *gameTimer;
+    QSoundEffect *bgMusic;
+    QSoundEffect *m_buttonSound;
     int elapsedTime;
     QString playerName;
 

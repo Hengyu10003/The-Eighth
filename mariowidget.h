@@ -28,6 +28,7 @@ signals:
     void gameWon();
     void gameLost();
     void returnToMenu();
+    void gamePaused(bool paused);
 
 protected:
     void paintEvent(QPaintEvent *event);
@@ -107,6 +108,7 @@ private:
     int m_coinFrameCounter;
     int m_playerFrame;         // 玩家动画帧 0-3
     int m_playerFrameCounter;  // 玩家动画计数器
+    bool m_paused;
 };
 
 #endif // MARIOWIDGET_H
