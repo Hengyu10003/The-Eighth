@@ -27,6 +27,8 @@ App.stopTimer = function () {
 /* ---------- 主菜单 ---------- */
 App.menuScene = function () {
   const BTN = { x: 140, w: 200 };
+  /* 主菜单背景 4 帧循环；第 4 帧与原版 config.h 一致，复用 background2 */
+  const MENU_BG = ["background1.png", "background2.png", "background3.png", "background2.png"];
   const items = [
     { name: "inputNameBtn", y: 260, h: 68, img: "startgame_name_button.png", on: App.onInputName },
     { name: "startGameBtn", y: 330, h: 65, img: "startgame_start_button.png", on: App.onStartGame },
@@ -42,7 +44,7 @@ App.menuScene = function () {
       if (acc >= 0.45) { acc = 0; frame = (frame + 1) % 4; }   // 原版每 450ms 换一帧
     },
     draw: function (ctx) {
-      G.draw(ctx, "background" + (frame + 1) + ".png", 0, 0, G.W, G.H);
+      G.draw(ctx, MENU_BG[frame], 0, 0, G.W, G.H);
       for (let i = 0; i < items.length; i++) {
         const b = items[i];
         G.draw(ctx, b.img, BTN.x, b.y, BTN.w, b.h);
@@ -113,7 +115,7 @@ App.onExit = function () {
   G.setScene({
     draw: function (ctx) {
       ctx.fillStyle = "#000"; ctx.fillRect(0, 0, G.W, G.H);
-      G.text(ctx, "感谢游玩 The Eighth（第八关）", G.W / 2, G.H / 2 - 30, 44, "#ffe9c9", "center");
+      G.text(ctx, "感谢游玩 The Eighth（今天星期八）", G.W / 2, G.H / 2 - 30, 44, "#ffe9c9", "center");
       G.text(ctx, "可以关闭这个页面了", G.W / 2, G.H / 2 + 40, 26, "#b9b6cc", "center");
     },
   });
