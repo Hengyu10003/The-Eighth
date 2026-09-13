@@ -130,3 +130,5 @@ The_eighth/
 ## 许可证
 
 本项目基于 MIT License 开源，详见 [LICENSE](LICENSE)。
+
+> 注意：本项目依赖的 Qt 5.9.9 采用 LGPLv3 / GPLv3 授权，编译、分发时请一并遵守 Qt 的许可条款。
