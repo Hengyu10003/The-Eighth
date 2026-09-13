@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Eighth（第八关）— 基于 Qt 的横版闯关小游戏</title>
+<meta name="description" content="The Eighth（第八关）：基于 Qt 5.9.9 开发的横版闯关小游戏，包含数字连线、超级马里奥、空洞骑士三个关卡。">
+<style>
+  :root{
+    --bg:#0a0a12;
+    --bg2:#12121f;
+    --card:#161625;
+    --line:#26263a;
+    --txt:#e8e8f0;
+    --dim:#9a9ab0;
+    --p1:#7c5cff;
+    --p2:#22d3ee;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Helvetica Neue",Arial,sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding:110px 0 90px;
+    text-align:center;
+    overflow:hidden;
+    background:
+      radial-gradient(900px 420px at 50% -10%, rgba(124,92,255,.30), transparent 70%),
+      radial-gradient(700px 380px at 80% 10%, rgba(34,211,238,.16), transparent 70%),
+      linear-gradient(180deg,#0d0d18 0%, var(--bg) 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    display:inline-block;
+    font-size:13px;
+    letter-spacing:.18em;
+    color:var(--p2);
+    border:1px solid rgba(34,211,238,.35);
+    border-radius:999px;
+    padding:5px 16px;
+    margin-bottom:26px;
+  }
+  .hero h1{
+    font-size:clamp(44px,8vw,84px);
+    line-height:1.05;
+    letter-spacing:-.02em;
+    font-weight:800;
+    background:linear-gradient(120deg,#fff 10%,#b9a8ff 45%,#5eead4 90%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero h1 span{
+    display:block;
+    font-size:.36em;
+    font-weight:600;
+    letter-spacing:.34em;
+    color:var(--dim);
+    -webkit-text-fill-color:var(--dim);
+    margin-top:14px;
+  }
+  .lede{
+    max-width:620px;
+    margin:26px auto 0;
+    color:var(--dim);
+    font-size:17px;
+  }
+  .actions{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:38px;
+  }
+  .btn{
+    display:inline-block;
+    padding:14px 34px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:700;
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn.primary{
+    background:linear-gradient(120deg,var(--p1),var(--p2));
+    color:#08080f;
+    box-shadow:0 10px 30px -10px rgba(124,92,255,.85);
+  }
+  .btn.primary:hover{box-shadow:0 16px 40px -10px rgba(34,211,238,.85)}
+  .btn.ghost{
+    border:1px solid var(--line);
+    color:var(--txt);
+    background:rgba(255,255,255,.02);
+  }
+  .btn.ghost:hover{border-color:#4b4b6b;background:rgba(255,255,255,.05)}
+  .hint{margin-top:20px;font-size:13px;color:#6f6f8a}
+
+  /* ---------- Sections ---------- */
+  section{padding:84px 0}
+  .s-title{
+    font-size:30px;
+    font-weight:800;
+    letter-spacing:-.01em;
+    margin-bottom:10px;
+  }
+  .s-sub{color:var(--dim);margin-bottom:44px;font-size:15px}
+
+  /* ---------- Level cards ---------- */
+  .grid3{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+    gap:24px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    transition:transform .22s ease, border-color .22s ease;
+  }
+  .card:hover{transform:translateY(-5px);border-color:#3d3d5c}
+  .card .shot{
+    width:100%;
+    aspect-ratio:16/10;
+    object-fit:cover;
+    display:block;
+    background:#0d0d16;
+    border-bottom:1px solid var(--line);
+  }
+  .card .body{padding:22px}
+  .card .no{
+    font-size:12px;
+    letter-spacing:.16em;
+    color:var(--p2);
+    font-weight:700;
+  }
+  .card h3{font-size:21px;margin:8px 0 10px;font-weight:700}
+  .card p{color:var(--dim);font-size:14.5px}
+  .card .meta{
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+    font-size:13px;
+    color:#7d7d99;
+  }
+
+  /* ---------- Gallery ---------- */
+  .grid4{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:16px;
+  }
+  .grid4 img{
+    width:100%;
+    aspect-ratio:4/3;
+    object-fit:cover;
+    border-radius:12px;
+    border:1px solid var(--line);
+    display:block;
+    background:#0d0d16;
+  }
+
+  /* ---------- Table ---------- */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:15px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  th,td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:rgba(255,255,255,.03);font-weight:700;color:#c9c9e0;font-size:14px}
+  tr:last-child td{border-bottom:none}
+  kbd{
+    display:inline-block;
+    background:#0d0d18;
+    border:1px solid var(--line);
+    border-bottom-width:2px;
+    border-radius:6px;
+    padding:2px 9px;
+    font-family:Consolas,Monaco,monospace;
+    font-size:13px;
+  }
+
+  /* ---------- Code ---------- */
+  pre{
+    background:#0d0d18;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+    overflow-x:auto;
+    font-family:Consolas,Monaco,"Courier New",monospace;
+    font-size:13.5px;
+    line-height:1.8;
+    color:#c7d2fe;
+  }
+  pre .c{color:#5f6080}
+
+  /* ---------- Footer ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:44px 0 60px;
+    text-align:center;
+    color:#6f6f8a;
+    font-size:14px;
+  }
+  footer a{color:var(--p2)}
+  footer a:hover{text-decoration:underline}
+  footer .links{margin-bottom:14px;display:flex;gap:22px;justify-content:center;flex-wrap:wrap}
+
+  @media (max-width:560px){
+    .hero{padding:80px 0 64px}
+    section{padding:60px 0}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Qt 5.9.9 · C++ · 横版闯关</span>
+    <h1>The Eighth<span>第 八 关</span></h1>
+    <p class="lede">
+      在迷宫中寻找出口，依次闯过三个梦魇般的关卡，收集散落的碎片。
+      每一关都是一场完全不同的游戏。
+    </p>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/Hengyu10003/The-Eighth/releases/download/v1.0/The_eighth.exe">下载试玩</a>
+      <a class="btn ghost" href="https://github.com/Hengyu10003/The-Eighth">查看源码</a>
+    </div>
+    <p class="hint">Windows 免安装 · 117 MB · 图片与音乐已全部打包进单个 exe，无需安装 Qt</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2 class="s-title">三个关卡</h2>
+    <p class="s-sub">每通关一个难度获得一枚碎片，最多可收集 9 枚。</p>
+    <div class="grid3">
+
+      <div class="card">
+        <img class="shot" src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/level1_intro_img.png" alt="第一关 红绸织梦" loading="lazy">
+        <div class="body">
+          <span class="no">LEVEL 01</span>
+          <h3>红绸织梦</h3>
+          <p>数字连线。点击数字后沿格子绘制路径，路径长度必须等于数字减一，把所有数字两两配对。</p>
+          <div class="meta">6×6 / 10×10 / 12×12 三种难度</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img class="shot" src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/level2_intro_img.png" alt="第二关 逃离梦魇" loading="lazy">
+        <div class="body">
+          <span class="no">LEVEL 02</span>
+          <h3>逃离梦魇</h3>
+          <p>超级马里奥式平台跳跃。收集金币、踩踏敌人累积分数，敌人需要打击两次才会倒下。</p>
+          <div class="meta">得分超过 30 分即可通关</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img class="shot" src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/level3_intro_img.jpg" alt="第三关 鬼神" loading="lazy">
+        <div class="body">
+          <span class="no">LEVEL 03</span>
+          <h3>鬼神</h3>
+          <p>空洞骑士式横版战斗。在平台间穿梭，与 BOSS 正面对决，血量见底之前先击败它。</p>
+          <div class="meta">玩家血量在左下，BOSS 血量在正上方</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <h2 class="s-title">游戏画面</h2>
+    <p class="s-sub">主菜单、迷宫、排行榜与结局。</p>
+    <div class="grid4">
+      <img src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/main_window.png" alt="主菜单" loading="lazy">
+      <img src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/migong.png" alt="迷宫" loading="lazy">
+      <img src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/paihangbang.png" alt="排行榜" loading="lazy">
+      <img src="https://raw.githubusercontent.com/Hengyu10003/The-Eighth/main/images/final.png" alt="通关结局" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="s-title">操作方式</h2>
+    <p class="s-sub">全部关卡都支持键盘操作。</p>
+    <table>
+      <thead>
+        <tr><th style="width:38%">场景</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>迷宫</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或 方向键 移动</td></tr>
+        <tr><td>第一关 · 数字连线</td><td>鼠标点击数字开始连线，再点空格子绘制路径</td></tr>
+        <tr><td>第二关 · 超级马里奥</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动，<kbd>空格</kbd> 跳跃</td></tr>
+        <tr><td>第三关 · 空洞骑士</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动，<kbd>J</kbd> 攻击，<kbd>空格</kbd> 飞行</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section style="background:var(--bg2);border-top:1px solid var(--line)">
+  <div class="wrap">
+    <h2 class="s-title">从源码编译</h2>
+    <p class="s-sub">需要 Qt 5.9.9（MinGW 5.3.0 32bit）与 Windows 环境。</p>
+    <pre><span class="c"># 1. 克隆仓库</span>
+git clone https://github.com/Hengyu10003/The-Eighth.git
+cd The-Eighth
+
+<span class="c"># 2. 把 Qt 的 bin 目录加入 PATH</span>
+set PATH=C:\Qt\Qt5.9.9\5.9.9\mingw53_32\bin;%PATH%
+
+<span class="c"># 3. 生成 Makefile 并编译</span>
+qmake The_eighth.pro -spec win32-g++ CONFIG+=release
+mingw32-make -j4
+
+<span class="c"># 编译结果位于 release\The_eighth.exe</span></pre>
+    <p class="hint" style="margin-top:18px">
+      也可以直接修改 <code>build.bat</code> 里的 <code>QT_PATH</code>，然后双击运行一键编译。
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/Hengyu10003/The-Eighth">源代码</a>
+      <a href="https://github.com/Hengyu10003/The-Eighth/releases">下载</a>
+      <a href="https://github.com/Hengyu10003/The-Eighth/blob/main/README.md">说明文档</a>
+      <a href="https://github.com/Hengyu10003/The-Eighth/blob/main/LICENSE">MIT License</a>
+    </div>
+    <p>The Eighth（第八关）· 基于 Qt 5.9.9 · MIT License</p>
+  </div>
+</footer>
+
+</body>
+</html>
