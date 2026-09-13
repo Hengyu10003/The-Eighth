@@ -22,8 +22,6 @@ SOURCES += \
     inputnamedialog.cpp \
     backgrounddialog.cpp \
     gameresultdialog.cpp \
-    gameintrodialog.cpp \
-    levelstartdialog.cpp \
     level1startdialog.cpp \
     level2startdialog.cpp \
     level3startdialog.cpp \
@@ -53,8 +51,6 @@ HEADERS += \
     inputnamedialog.h \
     backgrounddialog.h \
     gameresultdialog.h \
-    gameintrodialog.h \
-    levelstartdialog.h \
     level1startdialog.h \
     level2startdialog.h \
     level3startdialog.h \
@@ -89,8 +85,6 @@ FORMS += \
     backgrounddialog.ui \
     leaderboarddialog.ui \
     gameresultdialog.ui \
-    gameintrodialog.ui \
-    levelstartdialog.ui \
     level1startdialog.ui \
     level2startdialog.ui \
     level3startdialog.ui \

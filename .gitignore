@@ -1,0 +1,37 @@
+# ---- 编译产物（由 qmake/mingw32-make 自动生成，不需要提交）----
+release/
+debug/
+build/
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+*.so
+*.rcc
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+moc/
+obj/
+rcc/
+ui/
+Makefile
+Makefile.*
+.qmake.stash
+*.debug
+
+# ---- Qt Creator / qmake 本地环境配置 ----
+*.pro.user
+*.pro.user.*
+*.autosave
+
+# ---- 运行时生成的数据 ----
+leaderboard.txt
+
+# ---- 操作系统 / 编辑器文件 ----
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/

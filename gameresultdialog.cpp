@@ -4,7 +4,6 @@
 GameResultDialog::GameResultDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::GameResultDialog)
-    , isWon(false)
     , currentLevel(1)
     , currentDifficulty(1)
 {
@@ -19,24 +18,25 @@ GameResultDialog::~GameResultDialog()
     delete ui;
 }
 
-void GameResultDialog::setResult(bool won, int level, int difficulty)
+void GameResultDialog::setResult(int level, int difficulty)
 {
-    isWon = won;
     currentLevel = level;
     currentDifficulty = difficulty;
 
-    // 失败界面：只显示"重新开始"和"返回主菜单"
-    Q_UNUSED(isWon);
+    // 失败界面：显示"重新开始"和"返回主菜单"
     ui->retryBtn->show();
     ui->backToMenuBtn->show();
 }
 
+
+//按钮
+//重新开始
 void GameResultDialog::onRetryClicked()
 {
     accept();
-    emit resultSelected(1);
+    emit resultSelected(1);//释放信号
 }
-
+//返回菜单
 void GameResultDialog::onBackToMenuClicked()
 {
     accept();

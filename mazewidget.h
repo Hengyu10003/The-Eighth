@@ -18,8 +18,6 @@ public:
     explicit MazeWidget(QWidget *parent = nullptr, int level = 1, QSize size = QSize(800, 600));
     ~MazeWidget() override;
 
-    void setLevel(int level);
-    void reset();
 signals:
     void mazeCompleted();
     void returnToMenu();

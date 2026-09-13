@@ -15,13 +15,11 @@ public:
     FinalDialog(QWidget *parent = 0);
     ~FinalDialog();
 
-    void setResult(const QString &text);
-
 signals:
-    void backToMenu();
+    void backToMenu();//信号
 
 private slots:
-    void onBackToMenuClicked();
+    void onBackToMenuClicked();//槽函数
 
 private:
     Ui::FinalDialog *ui;

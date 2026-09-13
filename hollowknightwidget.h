@@ -18,9 +18,6 @@ public:
     HollowKnightWidget(QWidget *parent = 0, int difficulty = 1, QSize size = QSize(1000, 700));
     ~HollowKnightWidget();
 
-    void setDifficulty(int difficulty);
-    void reset();
-
 signals:
     void gameWon();
     void gameLost();
@@ -36,7 +33,6 @@ private slots:
     void updateGame();
 
 private:
-    void initGame();
     bool checkCollision(const QRect &rect1, const QRect &rect2);
     void movePlayer();
     void updateBoss();
@@ -72,7 +68,7 @@ private:
     int playerMaxHealth;
     int playerAttack;
 
-    // ★ 玩家子弹（速度带 XY 两个方向）
+    //玩家子弹（速度带 XY 两个方向）
     struct PlayerBullet {
         double x; double y; double vx; double vy; bool active;
     };
@@ -86,7 +82,7 @@ private:
     int bossAttack;
     int bossMoveTimer;
 
-    // ★ Boss 子弹（速度带 XY 两个方向）
+    //Boss 子弹（速度带 XY 两个方向）
     struct BossBullet {
         double x; double y; double vx; double vy; bool active; int tex;
     };

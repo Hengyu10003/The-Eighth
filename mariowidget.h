@@ -21,7 +21,6 @@ public:
     MarioWidget(QWidget *parent = 0, int difficulty = 1, QSize size = QSize(800, 600));
     ~MarioWidget();
 
-    void setDifficulty(int difficulty);
     void reset();
 
 signals:
@@ -52,9 +51,9 @@ private:
     double playerVelocityY;
     bool isOnGround;
     int jumpCount;
-    int invincibleCount;    // ★ 金身护体：还剩几次免死
+    int invincibleCount;
 
-    // ★ 攻击键用 Qt 事件（需要在释放时立即取消）
+    //攻击键用 Qt 事件（需要在释放时立即取消）
     bool keyAttack;
 
     int lastDirection;          // 最后移动方向：1=右，-1=左

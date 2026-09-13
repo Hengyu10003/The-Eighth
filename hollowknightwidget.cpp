@@ -5,6 +5,7 @@
 #include <cmath>
 #include <QPushButton>
 
+//构造函数
 HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize size)
     : QWidget(parent)
     , difficulty(difficulty)
@@ -34,10 +35,12 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     , bossShootTimer(0)
     , m_paused(false)
 {
+//固定界面---------------------------------------------------------------------------------------------------
     setFixedSize(size);
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
-
+//美工--------------------------------------------------------------------------------------------------
+    //玩家
     m_playerPixmapL[0].load(TUAN1_l);
     m_playerPixmapL[1].load(TUAN2_l);
     m_playerPixmapL[2].load(TUAN3_l);
@@ -46,19 +49,20 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     m_playerPixmapR[1].load(TUAN2_r);
     m_playerPixmapR[2].load(TUAN3_r);
     m_playerPixmapR[3].load(TUAN4_r);
-
+    //玩家的子弹
     m_bulletPixmap[0].load(TAN_BI1);
     m_bulletPixmap[1].load(TAN_BI2);
 
+    //BOSS的子弹
     m_bossBulletPixmap[0].load(BOSS_BI1);
     m_bossBulletPixmap[1].load(BOSS_BI2);
     m_bossBulletPixmap[2].load(BOSS_BI3);
-
+    //BOSS
     m_bossPixmap[0].load(BOSS1);
     m_bossPixmap[1].load(BOSS2);
     m_bossPixmap[2].load(BOSS3);
     m_bossPixmap[3].load(BOSS4);
-
+//血量/攻击值初始化设定
     switch (difficulty) {
     case 1:
         playerHealth = 200; playerMaxHealth = 200;
@@ -76,7 +80,7 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
         bossAttack = 3;
         break;
     }
-
+//刷新界面
     gameTimer = new QTimer(this);
     connect(gameTimer, SIGNAL(timeout()), this, SLOT(updateGame()));
     gameTimer->start(50);
@@ -90,95 +94,37 @@ HollowKnightWidget::HollowKnightWidget(QWidget *parent, int difficulty, QSize si
     backBtn->setFocusPolicy(Qt::NoFocus);
     connect(backBtn, SIGNAL(clicked()), this, SIGNAL(returnToMenu()));
 }
-
+//析构函数
 HollowKnightWidget::~HollowKnightWidget() {}
 
-void HollowKnightWidget::setDifficulty(int difficulty)
-{
-    this->difficulty = difficulty;
-    switch (difficulty) {
-    case 1:
-        playerHealth = 200; playerMaxHealth = 200;
-        bossHealth = 100;  bossMaxHealth = 100;
-        bossAttack = 5;
-        break;
-    case 2:
-        playerHealth = 250; playerMaxHealth = 250;
-        bossHealth = 100;  bossMaxHealth = 100;
-        bossAttack = 4;
-        break;
-    case 3:
-        playerHealth = 300; playerMaxHealth = 300;
-        bossHealth = 100;  bossMaxHealth = 100;
-        bossAttack = 3;
-        break;
-    }
-}
-
-void HollowKnightWidget::reset()
-{
-    playerX = 100; playerY = 300;
-    keyLeft = false; keyRight = false; keyUp = false; keyDown = false;
-    keyShoot = false; shootCooldown = 0;
-    m_lastDirectionX = 1;
-    m_playerFrame = 0;
-    m_playerFrameCounter = 0;
-    bossX = 700; bossY = 250;
-    bossMoveTimer = 0; bossShootTimer = 0;
-    playerBullets.clear();
-    bossBullets.clear();
-
-    switch (difficulty) {
-    case 1:
-        playerHealth = 200; playerMaxHealth = 200;
-        bossHealth = 100;  bossMaxHealth = 100;
-        bossAttack = 5;
-        break;
-    case 2:
-        playerHealth = 250; playerMaxHealth = 250;
-        bossHealth = 100;  bossMaxHealth = 100;
-        bossAttack = 4;
-        break;
-    case 3:
-        playerHealth = 300; playerMaxHealth = 300;
-        bossHealth = 100;  bossMaxHealth = 100;
-        bossAttack = 3;
-        break;
-    }
-}
-
-void HollowKnightWidget::initGame()
-{
-    playerBullets.clear();
-    bossBullets.clear();
-}
-
+// 检测两个矩形有没有撞上（碰上就返回true）
 bool HollowKnightWidget::checkCollision(const QRect &rect1, const QRect &rect2)
 {
     return rect1.intersects(rect2);
 }
 
-// ===================== 玩家移动 + 射击 =====================
+// ===================== 玩家移动 + 射击 ===============================================================================================================================================================================================================================================
 
 void HollowKnightWidget::movePlayer()
 {
     const int MOVE_SPEED = 5;
 
-    // ★ 移动：追踪按键方向
+// 移动：追踪按键方向
     if (keyLeft)  playerX -= MOVE_SPEED;
     if (keyRight) playerX += MOVE_SPEED;
     if (keyUp)    playerY -= MOVE_SPEED;
     if (keyDown)  playerY += MOVE_SPEED;
 
-    // 边界
+// 边界
     if (playerX < 0) playerX = 0;
     if (playerX > width() - 60) playerX = width() - 60;
     if (playerY < 0) playerY = 0;
     if (playerY > height() - 60) playerY = height() - 60;
 
-    // ===== ★ 根据按键确定射击方向 =====
-    if (keyShoot && shootCooldown <= 0) {
-        double vx = 0, vy = 0;
+// ===== 根据按键确定射击方向 =====
+    if (keyShoot && shootCooldown <= 0) {//按下射击键/并且冷却时间到了
+        double vx = 0, vy = 0;//子弹速度
+        //飞翔方向
         if (keyLeft)  vx = -1;
         if (keyRight) vx = 1;
         if (keyUp)    vy = -1;
@@ -191,10 +137,10 @@ void HollowKnightWidget::movePlayer()
         double len = std::sqrt(vx*vx + vy*vy);
         if (len > 0) { vx /= len; vy /= len; }
 
-        spawnPlayerBullet(vx * 10, vy * 10);
-        shootCooldown = 12;
+        spawnPlayerBullet(vx * 10, vy * 10);//发速度
+        shootCooldown = 12;//冷却时间
     }
-    if (shootCooldown > 0) shootCooldown--;
+    if (shootCooldown > 0) shootCooldown--;//每帧减1，减到0为止
 
     // ===== 玩家子弹移动 + 碰撞 =====
     for (PlayerBullet &b : playerBullets) {
@@ -219,7 +165,7 @@ void HollowKnightWidget::movePlayer()
     }
 }
 
-// ★ 生成玩家子弹
+//生成玩家子弹
 void HollowKnightWidget::spawnPlayerBullet(double vx, double vy)
 {
     PlayerBullet b;
@@ -231,32 +177,34 @@ void HollowKnightWidget::spawnPlayerBullet(double vx, double vy)
     playerBullets.append(b);
 }
 
-// ===================== Boss 逻辑 =====================
+// ===================== Boss 逻辑 ===============================================================================================================================================================================================================================================
 
 void HollowKnightWidget::updateBoss()
 {
+//BOSS移动------------------------------------------------------------------------------------------------------------
+//根据难度设置BOSS移动速度
     double speedMult = (difficulty == 1) ? 1.0 : (difficulty == 2) ? 0.9 : 0.8;
 
-    // Boss 左右移动
+// Boss 左右移动
     bossMoveTimer++;
     bossX += qSin(bossMoveTimer * 0.03) * 3 * speedMult;
 
-    // 边界
+// 边界
     if (bossX < 50) bossX = 50;
     if (bossX > width() - 100) bossX = width() - 100;
 
-    // Boss 上下浮动
+// Boss 上下浮动
     bossY = 250 + qSin(bossMoveTimer * 0.04) * 60;
 
-    // Boss 射击
+// Boss 射击-----------------------------------------------------------------------------------------------------------
     bossShootTimer++;
-    int shootInterval = (difficulty == 1) ? 50 : (difficulty == 2) ? 40 : 30;
+    int shootInterval = (difficulty == 1) ? 50 : (difficulty == 2) ? 40 : 30;//难度设置冷却时间
     if (bossShootTimer >= shootInterval) {
-        spawnBossBullet();
-        bossShootTimer = 0;
+        spawnBossBullet();//射出一发子弹
+        bossShootTimer = 0;//计时归零，重新计时
     }
 
-    // Boss 子弹移动 + 碰撞
+// Boss 子弹移动 + 碰撞-----------------------------------------------------------------------------------------------------
     QRect playerRect(playerX, playerY, 60, 60);
     for (BossBullet &b : bossBullets) {
         if (!b.active) continue;
@@ -272,43 +220,43 @@ void HollowKnightWidget::updateBoss()
                 return;
             }
         }
-
+        //边界之外消失
         if (b.x < -50 || b.x > width() + 50 || b.y < -50 || b.y > height() + 50)
             b.active = false;
     }
 }
 
-// ★ Boss 朝玩家方向射击
+// Boss朝玩家方向射子弹
 void HollowKnightWidget::spawnBossBullet()
 {
-    // 计算朝玩家的方向
-    double dx = playerX - bossX;
-    double dy = playerY - bossY;
-    double len = std::sqrt(dx*dx + dy*dy);
-    if (len == 0) return;
-    double nx = dx / len;
-    double ny = dy / len;
+    // 算一下玩家在Boss的哪个方向
+    double dx = playerX - bossX;                             // 玩家在Boss右边还是左边
+    double dy = playerY - bossY;                             // 玩家在Boss上边还是下边
+    double len = std::sqrt(dx*dx + dy*dy);                   // 玩家到Boss的距离
+    if (len == 0) return;                                    // 贴脸了，不射
+    double nx = dx / len;                                    // 归一化方向向量x
+    double ny = dy / len;                                    // 归一化方向向量y
 
-    double speed = 5;
-    int bulletCount = (difficulty == 1) ? 1 : (difficulty == 2) ? 2 : 3;
+    double speed = 5;                                        // 子弹飞行速度
+    int bulletCount = (difficulty == 1) ? 1 : (difficulty == 2) ? 2 : 3;  // 简单1颗，中等2颗，困难3颗
 
     for (int i = 0; i < bulletCount; i++) {
         BossBullet b;
-        b.x = bossX + 25;
+        b.x = bossX + 25;                                    // 子弹从Boss中心射出
         b.y = bossY + 25;
 
-        // 子弹方向：主方向 + 微小的角度扩散
-        double angleOffset = (i - (bulletCount - 1) / 2.0) * 0.3;
-        double angle = std::atan2(ny, nx) + angleOffset;
-        b.vx = std::cos(angle) * speed;
-        b.vy = std::sin(angle) * speed;
+        // 多颗子弹时稍微散开一点角度，形成扇形
+        double angleOffset = (i - (bulletCount - 1) / 2.0) * 0.3;//散开量
+        double angle = std::atan2(ny, nx) + angleOffset;//求方向角度
+        b.vx = std::cos(angle) * speed;                      // 子弹的x方向速度
+        b.vy = std::sin(angle) * speed;                      // 子弹的y方向速度
         b.active = true;
-        b.tex = qrand() % 3;
-        bossBullets.append(b);
+        b.tex = qrand() % 3;                                 // 随机选一种子弹贴图（3种换着用）
+        bossBullets.append(b);                                // 加入Boss子弹列表
     }
 }
 
-// ===================== 绘制 =====================
+// ===================== 绘制 ============================================================================================================================================================================================================================
 
 void HollowKnightWidget::paintEvent(QPaintEvent *event)
 {
@@ -316,11 +264,11 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.fillRect(rect(), Qt::black);
 
-    // 玩家：根据朝向选择动画帧
+// 玩家：根据朝向选择动画帧
     QPixmap currentFrame;
-    if (m_lastDirectionX == -1) {
+    if (m_lastDirectionX == -1) {//左
         currentFrame = m_playerPixmapL[m_playerFrame];
-    } else {
+    } else {//右
         currentFrame = m_playerPixmapR[m_playerFrame];
     }
     if (!currentFrame.isNull()) {
@@ -329,14 +277,14 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
         painter.fillRect(playerX, playerY, 60, 60, Qt::blue);
     }
 
-    // Boss (2倍 110×110，循环动画)
+// Boss (2倍 110×110，循环动画)
     QPixmap bossTex = m_bossPixmap[m_bossFrame];
     if (!bossTex.isNull()) {
         painter.drawPixmap(bossX, bossY, 110, 110, bossTex);
     } else {
         painter.fillRect(bossX, bossY, 110, 110, Qt::darkRed);
     }
-
+//子弹绘制----------------------------------------------------------------------------------------
     // 玩家子弹 (2.5倍大小 30×30)
     QPixmap bulletFrame = m_bulletPixmap[m_bulletFrame];
     for (const PlayerBullet &b : playerBullets) {
@@ -347,7 +295,6 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
                 painter.fillRect((int)b.x, (int)b.y, 30, 30, Qt::cyan);
         }
     }
-
     // Boss 子弹 (0.6倍 18×18，随机贴图)
     for (const BossBullet &b : bossBullets) {
         if (b.active) {
@@ -358,8 +305,8 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
                 painter.fillRect((int)b.x, (int)b.y, 18, 18, Qt::darkYellow);
         }
     }
-
-    // ★ Boss 血条（顶部中间，红色）
+//血条绘制-------------------------------------------------------------------------------------------------
+// Boss 血条（顶部中间，红色）
     int bossBarWidth = (bossHealth * 300) / bossMaxHealth;
     painter.setPen(Qt::NoPen);
     painter.fillRect(width() / 2 - 150, 20, 300, 25, Qt::darkGray);
@@ -370,8 +317,7 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     f.setBold(true);
     painter.setFont(f);
     painter.drawText(width() / 2 - 140, 37, QString("BOSS:").arg(bossHealth).arg(bossMaxHealth));
-
-    // ★ 玩家血条（在 Boss 血条正下方，绿色）
+//玩家血条（在 Boss 血条正下方，绿色）
     int playerBarWidth = (playerHealth * 200) / playerMaxHealth;
     painter.setPen(Qt::NoPen);
     painter.fillRect(width() / 2 - 100, 55, 200, 20, Qt::darkGray);
@@ -380,7 +326,7 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     painter.setFont(f);
     painter.drawText(width() / 2 - 90, 70, QString("HP: ").arg(playerHealth).arg(playerMaxHealth));
 
-    // 暂停遮罩
+// 暂停遮罩--------------------------------------------------------------------------------------------
     if (m_paused) {
         painter.fillRect(rect(), QColor(0, 0, 0, 160));
         painter.setPen(Qt::white);
@@ -392,11 +338,10 @@ void HollowKnightWidget::paintEvent(QPaintEvent *event)
     }
 }
 
-// ===================== 按键 =====================
-
+// ===================== 按键 ==============================================================================================================================================================================================================
 void HollowKnightWidget::keyPressEvent(QKeyEvent *event)
 {
-    // ESC 暂停/继续
+// ESC 暂停/继续
     if (event->key() == Qt::Key_Escape) {
         m_paused = !m_paused;
         if (m_paused) {
@@ -408,7 +353,7 @@ void HollowKnightWidget::keyPressEvent(QKeyEvent *event)
         update();
         return;
     }
-
+//点击按钮设置
     if (m_paused) return;
 
     switch (event->key()) {
@@ -441,9 +386,10 @@ void HollowKnightWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
+//界面刷新==============================================================================================================
 void HollowKnightWidget::updateGame()
 {
-    // 玩家走路动画：移动时每0.15秒切换帧（3个50ms周期）
+// 玩家走路动画
     if (keyLeft || keyRight) {
         m_playerFrameCounter++;
         if (m_playerFrameCounter >= 3) {
@@ -454,9 +400,9 @@ void HollowKnightWidget::updateGame()
         m_playerFrame = 0;
         m_playerFrameCounter = 0;
     }
-
+//玩家子弹动画
     m_bulletFrame = (m_bulletFrame + 1) % 2;
-
+//boss动画
     m_bossFrameCounter++;
     if (m_bossFrameCounter >= 6) {
         m_bossFrameCounter = 0;

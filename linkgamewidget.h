@@ -21,9 +21,6 @@ public:
     LinkGameWidget(QWidget *parent = 0, int difficulty = 1, QSize size = QSize(800, 600));
     ~LinkGameWidget();
 
-    void setDifficulty(int difficulty);
-    void reset();
-
 signals:
     void gameWon();
     void gameLost();
@@ -46,7 +43,6 @@ private:
     void initGame();
     bool checkWin();
     void handleLeftClick(const QPoint &cell);
-    void handleRightClick();
     void connectPair(int idx);
     int getPairIndex(const QPoint &cell) const;
     bool isAdjacent(const QPoint &a, const QPoint &b) const;
@@ -60,7 +56,6 @@ private:
                       QVector<QPoint> &outPath) const;
 
     QColor getColor(int num) const;
-    QColor getLightColor(int num) const;
 
     int gridSize;
     int numRange;

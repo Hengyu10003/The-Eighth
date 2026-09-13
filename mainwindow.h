@@ -16,14 +16,14 @@
 #include <QSoundEffect>
 /*Qt的音效播放类*/
 
-//前置声明？？？？？？？？？？？？？？？？？？？？？？？========================================================================================================
+//前置声明=======================================================================================================
 class GameController;//中央控制器
 class MazeWidget;//迷宫
 class LinkGameWidget;//连线
 class MarioWidget;//马里奥
 class HollowKnightWidget;//BOSS
 
-//ui命名空间前置声明？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？
+//ui命名空间前置声明
 namespace Ui {
 class MainWindow;
 }
@@ -31,14 +31,14 @@ class MainWindow;
 //MainWindow类定义=============================================================
 class MainWindow : public QMainWindow//继承标准窗口，获得标准窗口的所有功能
 {
-    Q_OBJECT//让signal,slot,QTimer可以正常工作（让信息与槽正常连接，工作）？？？？？？？？？？？？
+    Q_OBJECT//让signal,slot,QTimer可以正常工作（让信息与槽正常连接，工作）
 
 public:
     //构造函数
     explicit MainWindow(QWidget *parent = 0);
     /*
-    作用：初始化所有成员变量、加载背景图片、创建四个游戏Widget???????????、设置信号槽连接、
-         加载音效、安装全局事件过滤器？？？？？？？？？？？？？？/
+    作用：初始化所有成员变量、加载背景图片、创建四个游戏Widget、设置信号槽连接、
+         加载音效、安装全局事件过滤器
     */
     //析构函数
     ~MainWindow();
@@ -56,8 +56,8 @@ public:
     int getGameTime() const;//返回当前已用秒数（完成时间）
 
     //玩家昵称
-    QString getPlayerName() const;//返回玩家昵称？？？？？？？？
-    void setPlayerName(const QString &name);//保存玩家昵称？？？？？？？
+    QString getPlayerName() const;//返回玩家昵称
+    void setPlayerName(const QString &name);//保存玩家昵称
 
     //关卡/难度读写
     //记录当前在第几关
@@ -88,14 +88,14 @@ private slots:
     void onLeaderboardClicked();
     void onExitClicked();
 
-    void updateTimer();//音乐？？？？？？？？？？？？？？？
+    void updateTimer();//音乐
     void updateBgFrame();//背景图片
 
     void onGamePaused(bool paused);//ESC：暂停游戏信号
 
 protected:
-    void paintEvent(QPaintEvent *event);//重绘？？？？？？？？？？
-    bool eventFilter(QObject *obj, QEvent *event) override;//？？？？？？？？？？？？？？？？？
+    void paintEvent(QPaintEvent *event);//重绘
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     Ui::MainWindow *ui;//指向 mainwindow.ui 编译后生成的界面类的指针

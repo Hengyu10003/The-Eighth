@@ -15,7 +15,7 @@ public:
     GameResultDialog(QWidget *parent = 0);
     ~GameResultDialog();
 
-    void setResult(bool won, int level, int difficulty);
+    void setResult(int level, int difficulty);
 
 signals:
     void resultSelected(int result);
@@ -26,7 +26,6 @@ private slots:
 
 private:
     Ui::GameResultDialog *ui;
-    bool isWon;
     int currentLevel;
     int currentDifficulty;
 };

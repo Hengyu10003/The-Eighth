@@ -14,13 +14,8 @@ FinalDialog::~FinalDialog()
     delete ui;
 }
 
-void FinalDialog::setResult(const QString &text)
-{
-//    ui->textBrowser->setText(text);
-}
-
 void FinalDialog::onBackToMenuClicked()
 {
-    emit backToMenu();
-    accept();
+    emit backToMenu();//发射这个信号，表示要返回菜单了
+    accept();//关闭弹窗，并返回
 }
